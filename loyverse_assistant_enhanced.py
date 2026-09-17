@@ -1,14 +1,27 @@
 #!/usr/bin/env python3
 """
-Mejorador para Loyverse Assistant - Reconocimiento Inteligente de Intenciones v2.0
-VERSIÓN CORREGIDA con palabras clave expandidas
-Reemplaza el método 'answer()' del asistente original con uno mucho más robusto
+Mejorador para Loyverse Assistant - Reconocimiento Inteligente de Intenciones v2.2
+VERSIÓN MEJORADA: Soporte completo para rangos de fechas (del 7 al 17 de septiembre)
 """
 
 import re
 import unicodedata
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
+
+MONTHS_NAME_TO_NUM = {
+    "enero": 1, "febrero": 2, "marzo": 3, "abril": 4,
+    "mayo": 5, "junio": 6, "julio": 7, "agosto": 8,
+    "septiembre": 9, "sept": 9, "sep": 9, "setiembre": 9,
+    "octubre": 10, "oct": 10, "noviembre": 11, "nov": 11,
+    "diciembre": 12, "dic": 12
+}
+
+MONTHS_ES = {
+    1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
+    5: "Mayo", 6: "Junio", 7: "Julio", 8: "Agosto",
+    9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"
+}
 
 def normalize_text(text):
     """Normaliza texto para comparación"""
@@ -22,21 +35,21 @@ def normalize_text(text):
 class IntentionRecognizer:
     """
     Reconoce intenciones de usuario de forma más flexible y con mejor cobertura
-    VERSIÓN v2.0 - PALABRAS CLAVE EXPANDIDAS
+    VERSIÓN v2.2 - SOPORTE COMPLETO DE RANGOS DE FECHAS
     """
     
     # Diccionarios de sinónimos EXPANDIDOS
     INTENT_KEYWORDS = {
         'ventas_hoy': {
             'keywords': [
-                'ventas', 'vendí', 'vendimos', 'total', 'cuanto', 'se vendió', 'mañana',
+                'ventas', 'vendí', 'vendimos', 'total', 'cuanto', 'se vendió',
                 'ingresos', 'recaudado', 'al momento', 'ahorita', 'ahora', 'cuantas ventas',
                 'cuánto ganamos', 'balance', 'total del día', 'cantidad vendida', 'facturación',
                 'cuanto hemos vendido', 'resumen de ventas', 'como va', 'como vamos',
                 'estado de ventas', 'movimiento', 'transacciones', 'cifra', 'monto',
                 'ganancias', 'ingresos del día', 'venta diaria', 'corte parcial'
             ],
-            'exclude': ['ayer', 'mes', 'semana', 'mejor', 'más', 'histórico', 'cuando', 'cual dia']
+            'exclude': ['ayer', 'mes', 'semana', 'mejor', 'más', 'histórico', 'cuando', 'cual dia', 'del', 'al']
         },
         
         'ventas_ayer': {
@@ -74,7 +87,11 @@ class IntentionRecognizer:
                 'top', 'mas vendido', 'ranking', 'lo que mas', 'mejor venta', 'estrella',
                 'más popular', 'favorita', 'bestseller', 'mas se vendio', 'lo más vendido',
                 'prendas estrella', 'más solicitadas', 'favoritas', 'líderes de ventas',
-                'artículos de mayor venta', 'prendas líderes', 'campeonas'
+                'artículos de mayor venta', 'prendas líderes', 'campeonas',
+                'talla más vendida', 'talla mas vendida', 'cual talla se vende mas',
+                'talla que más se vende', 'talla popular', 'talla favorita',
+                'que talla vende mas', 'que se vende mas', 'talla más solicitada',
+                'mejor talla', 'talla estrella', 'talla preferida', 'talla lider'
             ],
             'exclude': []
         },
@@ -96,7 +113,12 @@ class IntentionRecognizer:
                 'cantidad en stock', 'existencias', 'cuanto hay', 'qué hay', 'qué tenemos',
                 'cuánto inventario', 'cuántas hay', 'disponibles', 'en stock', 'tenemos de'
             ],
-            'exclude': ['vendidas', 'vendido']
+            'exclude': ['vendidas', 'vendido', 'más vendido', 'mas vendido', 'talla más vendida']
+        },
+        
+        'rango_fechas': {
+            'keywords': ['del', 'al', 'desde', 'hasta'],
+            'exclude': []
         },
         
         'periodo': {
@@ -144,12 +166,19 @@ class IntentionRecognizer:
         clean = re.sub(r'@\w+', '', clean).strip()
         norm = normalize_text(clean)
         
-        # Buscar fecha específica
+        # 🆕 PRIORIDAD: Detectar PRIMERO si tiene rango de fechas (del X al Y)
+        date_range_context = self._extract_date_range(text, norm)
+        if date_range_context.get('type') == 'date_range':
+            return 'rango_fechas', 2.0, date_range_context
+        
+        # Luego buscar fecha específica
         date_context = self._extract_date_context(clean, norm)
         
         # Calcular puntuaciones para cada intención
         scores = {}
         for intent, config in self.INTENT_KEYWORDS.items():
+            if intent == 'rango_fechas':
+                continue  # Ya se procesó arriba
             score = self._calculate_intent_score(norm, config)
             scores[intent] = score
         
@@ -179,6 +208,65 @@ class IntentionRecognizer:
         score = (keyword_count * 1.0) - (exclude_count * 0.5)
         
         return max(0, score)
+    
+    def _extract_date_range(self, text, norm_text):
+        """
+        🆕 Extrae rango de fechas como "del 7 al 17 de septiembre"
+        Retorna contexto con start_date y end_date
+        """
+        context = {
+            'type': None,
+            'start': None,
+            'end': None
+        }
+        
+        now_dt = datetime.now(self.tz)
+        
+        # Patrón: "del X al Y de [mes]" o "del X de [mes] al Y de [mes]"
+        pattern = (
+            r'\b(?:del|desde)\s+(?:el\s+)?(\d{1,2})(?:\s+de\s+([a-záéíóú]+))?'
+            r'(?:\s+(?:de|del)?\s+(\d{4}))?\s+al\s+(?:el\s+)?(\d{1,2})?'
+            r'(?:\s+de\s+([a-záéíóú]+))?(?:\s+(?:de|del)?\s+(\d{4}))?\b'
+        )
+        
+        m = re.search(pattern, norm_text)
+        if m:
+            d1_str = m.group(1)
+            m1_str = m.group(2)
+            y1_str = m.group(3)
+            
+            d2_str = m.group(4)
+            m2_str = m.group(5)
+            y2_str = m.group(6)
+            
+            # Convertir strings a integers
+            try:
+                d1 = int(d1_str)
+                d2 = int(d2_str) if d2_str else now_dt.day
+                
+                # Resolver meses
+                month1 = MONTHS_NAME_TO_NUM.get(m1_str) if m1_str else now_dt.month
+                month2 = MONTHS_NAME_TO_NUM.get(m2_str) if m2_str else (month1 if m1_str else now_dt.month)
+                
+                # Resolver años
+                year = int(y2_str or y1_str or now_dt.year)
+                
+                if month1 and month2:
+                    try:
+                        start_dt = datetime(year, month1, d1, 0, 0, 0, tzinfo=self.tz)
+                        end_dt = datetime(year, month2, d2, 23, 59, 59, tzinfo=self.tz)
+                        
+                        if start_dt <= end_dt:
+                            context['type'] = 'date_range'
+                            context['start'] = start_dt
+                            context['end'] = end_dt
+                            print(f"[DEBUG v2.2] Rango detectado: {start_dt.date()} -> {end_dt.date()}")
+                    except ValueError:
+                        pass
+            except (ValueError, TypeError):
+                pass
+        
+        return context
     
     def _extract_date_context(self, text, norm_text):
         """Extrae contexto de fecha de la pregunta"""
@@ -230,13 +318,14 @@ class IntentionRecognizer:
 def enhanced_answer(assistant, text, chat_id="default"):
     """
     Método mejorado de answer() que usa mejor reconocimiento de intenciones
-    VERSIÓN v2.0 - OPTIMIZADA
+    VERSIÓN v2.2 - SOPORTE COMPLETO DE RANGOS DE FECHAS
     """
     recognizer = IntentionRecognizer()
-    intent, confidence, date_context = recognizer.detect_intent(text)
+    intent, confidence, context = recognizer.detect_intent(text)
     
-    print(f"[DEBUG] Intención detectada: {intent} (confianza: {confidence:.2f})")
-    print(f"[DEBUG] Contexto de fecha: {date_context}")
+    print(f"[DEBUG v2.2] Intención detectada: {intent} (confianza: {confidence:.2f})")
+    print(f"[DEBUG v2.2] Contexto: {context}")
+    print(f"[DEBUG v2.2] Texto: {text}")
     
     # Si la confianza es muy baja, usar Gemini o mostrar ayuda
     if confidence < 0.5:
@@ -245,7 +334,25 @@ def enhanced_answer(assistant, text, chat_id="default"):
         else:
             return show_help()
     
-    # Procesar según intención detectada
+    # 🆕 PROCESAMIENTO DE RANGO DE FECHAS
+    if intent == 'rango_fechas':
+        start_date = context.get('start')
+        end_date = context.get('end')
+        
+        if start_date and end_date:
+            # Buscar si menciona prendas específicas
+            if re.search(r'\b(?:prendas?|ropa|piezas?|articulos?|vendieron|salieron?)\b', text.lower()):
+                return assistant.get_date_range_sales_summary(
+                    start_date, end_date,
+                    label=f"Del {start_date.day} al {end_date.day} de {MONTHS_ES.get(start_date.month)}"
+                )
+            else:
+                return assistant.get_date_range_sales_summary(
+                    start_date, end_date,
+                    label=f"Del {start_date.day} al {end_date.day} de {MONTHS_ES.get(start_date.month)}"
+                )
+    
+    # RESTO DE INTENCIONES...
     if intent == 'ventas_hoy':
         stats = assistant.get_day_sales_summary()
         if re.search(r'\b(?:prendas?|ropa|piezas?|articulos?|vendieron|salieron?)\b', text.lower()):
@@ -262,7 +369,7 @@ def enhanced_answer(assistant, text, chat_id="default"):
             return assistant.format_sales_summary_msg(stats, title="VENTAS DE AYER")
     
     elif intent == 'prendas_vendidas':
-        stats = assistant.get_day_sales_summary(date_context.get('date') if date_context.get('has_date') else None)
+        stats = assistant.get_day_sales_summary(context.get('date') if context.get('has_date') else None)
         return assistant.format_items_list_msg(stats, title="PRENDAS VENDIDAS")
     
     elif intent == 'caja':
@@ -272,7 +379,11 @@ def enhanced_answer(assistant, text, chat_id="default"):
         return assistant.search_ticket(text)
     
     elif intent == 'top_vendidas':
-        return assistant.get_top_sellers(30)
+        garment = recognizer.get_specific_garment(text)
+        if garment:
+            return assistant.get_top_sellers_by_garment(garment, days=30)
+        else:
+            return assistant.get_top_sellers(30)
     
     elif intent == 'agotadas':
         return assistant.get_low_stock_report()
@@ -285,9 +396,9 @@ def enhanced_answer(assistant, text, chat_id="default"):
             return assistant.get_inventory_overview_report()
     
     elif intent == 'periodo':
-        if date_context.get('period') == 7:
+        if context.get('period') == 7:
             return assistant.get_period_sales_summary(7, "ÚLTIMOS 7 DÍAS")
-        elif date_context.get('period') == 30:
+        elif context.get('period') == 30:
             return assistant.get_period_sales_summary(30, "ÚLTIMOS 30 DÍAS")
     
     elif intent == 'mejor_dia':
@@ -296,7 +407,7 @@ def enhanced_answer(assistant, text, chat_id="default"):
     elif intent == 'ayuda':
         return show_help()
     
-    # Fallback a Gemini si está disponible
+    # Fallback a Gemini
     if assistant.gemini_api_key:
         return assistant.ask_gemini(text, chat_id=chat_id)
     
@@ -306,70 +417,53 @@ def enhanced_answer(assistant, text, chat_id="default"):
 def show_help():
     """Menú de ayuda mejorado"""
     return (
-        f"🤖 <b>Asistente Inteligente de Ventas v2.0</b>\n\n"
+        f"🤖 <b>Asistente Inteligente de Ventas v2.2</b>\n\n"
         f"Entiendo muchas formas de hacer preguntas. Prueba:\n\n"
-        f"📊 <b>Ventas:</b>\n"
+        f"📊 <b>Ventas (Rangos de Fechas):</b>\n"
+        f"• \"Dame las ventas del 7 al 17 de septiembre\"\n"
+        f"• \"Ventas del 1 al 30 de agosto\"\n"
+        f"• \"¿Cuánto vendí del 10 al 25 de octubre?\"\n\n"
+        f"📊 <b>Ventas (Períodos):</b>\n"
         f"• \"¿Cuánto vendí hoy?\"\n"
         f"• \"Resumen de ventas\"\n"
-        f"• \"¿Cuáles fueron las prendas que vendieron?\"\n"
-        f"• \"¿Qué venta tuve ayer?\"\n"
         f"• \"Ventas de la semana\"\n"
-        f"• \"Mejor día de ventas\"\n"
-        f"• \"Balance del día\"\n"
-        f"• \"Estado de ventas\"\n\n"
+        f"• \"Ventas de ayer\"\n\n"
         f"💰 <b>Caja:</b>\n"
         f"• \"¿Cómo está la caja?\"\n"
-        f"• \"Corte de caja\"\n"
-        f"• \"¿Cuánto efectivo hay?\"\n"
-        f"• \"Dinero acumulado\"\n\n"
+        f"• \"Corte de caja\"\n\n"
         f"📦 <b>Inventario:</b>\n"
         f"• \"¿Qué stock hay de blazer?\"\n"
-        f"• \"¿Cuántas prendas tenemos?\"\n"
-        f"• \"Qué está agotado\"\n"
-        f"• \"Inventario bajo\"\n\n"
-        f"🏆 <b>Más:</b>\n"
-        f"• \"Top de prendas más vendidas\"\n"
+        f"• \"Prendas agotadas\"\n\n"
+        f"🏆 <b>Top Vendidas:</b>\n"
+        f"• \"Cual es la talla más vendida de blazer\"\n"
+        f"• \"Prendas estrella\"\n\n"
+        f"🎫 <b>Más:</b>\n"
         f"• \"Detalle del ticket 1234\"\n"
-        f"• \"¿Cuánto cuesta el vestido?\"\n"
     )
 
 
 if __name__ == "__main__":
-    # Pruebas de reconocimiento
     recognizer = IntentionRecognizer()
     
     test_queries = [
+        "dame las ventas del 7 al 17 de septiembre 2026",  # ← NUEVO CASO
+        "ventas del 1 al 30 de agosto",  # ← NUEVO CASO
+        "¿cuánto vendí del 10 al 25 de octubre?",  # ← NUEVO CASO
         "¿cuánto vendí hoy?",
-        "dame el resumen de ventas",
-        "¿qué prendas se vendieron?",
-        "stock de blazer",
-        "¿cómo está la caja?",
-        "corte de caja",
-        "top de prendas",
+        "cual es la talla más vendida de blazer",
         "prendas agotadas",
         "ticket 1234",
-        "ventas de ayer",
-        "¿qué se vendio la semana pasada?",
-        "mejor día de ventas",
-        "inventario total",
-        "cuantas prendas tenemos",
-        "¿cuánto cuesta el vestido?",
-        "prendas con poco stock",
-        "¿cuánto ganamos?",
-        "balance del día",
-        "estado de caja",
-        "prendas más populares"
     ]
     
     print("=" * 60)
-    print("PRUEBAS DE RECONOCIMIENTO DE INTENCIONES v2.0")
+    print("PRUEBAS DE RECONOCIMIENTO v2.2 - RANGOS DE FECHAS")
     print("=" * 60)
     
     for query in test_queries:
         intent, confidence, context = recognizer.detect_intent(query)
         print(f"\n📝 '{query}'")
         print(f"   └─ Intención: {intent} (conf: {confidence:.2f})")
-        if context.get('has_date'):
+        if context.get('type') == 'date_range':
+            print(f"   └─ Rango: {context.get('start').date()} -> {context.get('end').date()}")
+        elif context.get('has_date'):
             print(f"   └─ Fecha: {context.get('date').strftime('%d/%m/%Y')}")
-        if context.get('period'):
-            print(f"   └─ Período: {context.get('period')} días")
