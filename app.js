@@ -60,19 +60,28 @@ let shoppingBag = JSON.parse(localStorage.getItem("vonne_boutique_bag") || "[]")
 // Elementos del DOM
 document.addEventListener("DOMContentLoaded", async () => {
   initStoreStatus();
-  setupFilterTabs();
-  setupSearch();
   setupBagDrawer();
   updateBagUI();
   setupQuickViewModal();
   setupFaqAccordion();
   setupDriveSyncModal();
 
-  // Cargar catálogo unificado con prioridad diferida para no competir con el primer renderizado (FCP/LCP)
-  if ("requestIdleCallback" in window) {
-    requestIdleCallback(() => loadCatalog(), { timeout: 200 });
-  } else {
-    setTimeout(() => loadCatalog(), 60);
+  // Si la página contiene el catálogo de productos (catalogo.html)
+  if (document.getElementById("products-grid")) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const catParam = urlParams.get("categoria") || urlParams.get("category");
+    if (catParam) {
+      currentCategory = catParam.toLowerCase();
+    }
+    setupFilterTabs();
+    setupSearch();
+
+    // Cargar catálogo unificado con prioridad diferida
+    if ("requestIdleCallback" in window) {
+      requestIdleCallback(() => loadCatalog(), { timeout: 200 });
+    } else {
+      setTimeout(() => loadCatalog(), 60);
+    }
   }
 });
 
@@ -514,6 +523,19 @@ function renderProducts() {
 // =========================================================================
 function setupFilterTabs() {
   const tabs = document.querySelectorAll(".category-tab-btn");
+  if (!tabs.length) return;
+
+  // Activar visualmente la pestaña que coincida con currentCategory
+  tabs.forEach(t => {
+    if (t.dataset.category === currentCategory) {
+      t.classList.add("bg-stone-900", "text-white", "shadow-sm");
+      t.classList.remove("bg-stone-100", "text-stone-600");
+    } else {
+      t.classList.remove("bg-stone-900", "text-white", "shadow-sm");
+      t.classList.add("bg-stone-100", "text-stone-600");
+    }
+  });
+
   tabs.forEach(tab => {
     tab.addEventListener("click", () => {
       tabs.forEach(t => {
@@ -963,20 +985,6 @@ function setupFaqAccordion() {
 }
 
 function selectCategoryFromOccasion(cat) {
-  currentCategory = cat;
-  const tabs = document.querySelectorAll(".category-tab-btn");
-  tabs.forEach(tab => {
-    if (tab.dataset.category === cat) {
-      tab.classList.add("bg-stone-900", "text-white", "shadow-sm");
-      tab.classList.remove("bg-stone-100", "text-stone-600");
-    } else {
-      tab.classList.remove("bg-stone-900", "text-white", "shadow-sm");
-      tab.classList.add("bg-stone-100", "text-stone-600");
-    }
-  });
-  renderProducts();
-  const catSection = document.getElementById("catalogo");
-  if (catSection) {
-    catSection.scrollIntoView({ behavior: "smooth" });
-  }
+  window.location.href = `catalogo.html?categoria=${encodeURIComponent(cat)}`;
 }
+
