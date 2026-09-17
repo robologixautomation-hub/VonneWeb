@@ -72,6 +72,7 @@ class LoyverseAssistant:
         self.tz = timezone(timedelta(hours=self.offset_hours))
         self.employees_cache = {}
         self.payment_types_cache = {}
+        self.gemini_api_key = self.tg_cfg.get("gemini_api_key", os.environ.get("GEMINI_API_KEY", "")).strip()
         self._load_metadata()
 
     def _api_get(self, endpoint):
@@ -602,6 +603,191 @@ class LoyverseAssistant:
         )
 
     # -------------------------------------------------------------------------
+    # Integración con Google Gemini AI (Function Calling)
+    # -------------------------------------------------------------------------
+    def execute_tool(self, name, args):
+        try:
+            if name == "consultar_inventario":
+                q = args.get("termino", "")
+                if args.get("talla"):
+                    q += f" talla {args.get('talla')}"
+                return self.answer_stock_or_price(q)
+            elif name == "consultar_ventas":
+                periodo = (args.get("periodo") or "hoy").lower()
+                if "ayer" in periodo:
+                    yesterday = datetime.now(self.tz) - timedelta(days=1)
+                    stats = self.get_day_sales_summary(yesterday)
+                    return self.format_sales_summary_msg(stats, title="VENTAS DE AYER")
+                elif "semana" in periodo:
+                    return self.get_period_sales_summary(7, "ÚLTIMOS 7 DÍAS")
+                elif "mes" in periodo:
+                    return self.get_period_sales_summary(30, "ÚLTIMOS 30 DÍAS")
+                else:
+                    stats = self.get_day_sales_summary()
+                    return self.format_sales_summary_msg(stats, title="VENTAS DE HOY")
+            elif name == "consultar_prendas_vendidas":
+                periodo = (args.get("periodo") or "hoy").lower()
+                if "ayer" in periodo:
+                    yesterday = datetime.now(self.tz) - timedelta(days=1)
+                    stats = self.get_day_sales_summary(yesterday)
+                    return self.format_items_list_msg(stats, title="PRENDAS VENDIDAS AYER")
+                else:
+                    stats = self.get_day_sales_summary()
+                    return self.format_items_list_msg(stats, title="PRENDAS VENDIDAS HOY")
+            elif name == "consultar_caja":
+                return self.get_drawer_status_msg()
+            elif name == "consultar_mas_vendidos":
+                dias = int(args.get("dias") or 30)
+                return self.get_top_sellers(dias)
+            elif name == "consultar_alertas_stock":
+                return self.get_low_stock_report()
+            elif name == "consultar_ticket":
+                num = str(args.get("numero", ""))
+                return self.search_ticket(num)
+        except Exception as e:
+            return f"Error ejecutando consulta en Loyverse: {e}"
+        return "Consulta completada."
+
+    def ask_gemini(self, user_message):
+        if not self.gemini_api_key:
+            return None
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.gemini_api_key}"
+
+        tools_def = [{
+            "function_declarations": [
+                {
+                    "name": "consultar_inventario",
+                    "description": "Busca prendas en el catálogo de Vonne Boutique por nombre, categoría o talla, devolviendo existencias, precios y códigos.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "termino": {"type": "string", "description": "Nombre o tipo de prenda (ej. blazer, vestido, chaleco)"},
+                            "talla": {"type": "string", "description": "Talla específica si se solicitó (CH, M, G, XL, XXL, etc.)"}
+                        }
+                    }
+                },
+                {
+                    "name": "consultar_ventas",
+                    "description": "Consulta el reporte de ventas de un período (hoy, ayer, semana, mes).",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "periodo": {"type": "string", "description": "Periodo a consultar: 'hoy', 'ayer', 'semana', 'mes'"}
+                        },
+                        "required": ["periodo"]
+                    }
+                },
+                {
+                    "name": "consultar_prendas_vendidas",
+                    "description": "Consulta la lista detallada de prendas que se vendieron en un período (hoy o ayer).",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "periodo": {"type": "string", "description": "'hoy' o 'ayer'"}
+                        }
+                    }
+                },
+                {
+                    "name": "consultar_caja",
+                    "description": "Consulta el estado actual de la caja registradora, fondo inicial y efectivo.",
+                    "parameters": {"type": "object", "properties": {}}
+                },
+                {
+                    "name": "consultar_mas_vendidos",
+                    "description": "Obtiene el ranking de las prendas más vendidas de la tienda.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "dias": {"type": "integer", "description": "Número de días hacia atrás (ej. 7 o 30)"}
+                        }
+                    }
+                },
+                {
+                    "name": "consultar_alertas_stock",
+                    "description": "Obtiene la lista de prendas agotadas o con poco stock (<= 3 piezas) para resurtir.",
+                    "parameters": {"type": "object", "properties": {}}
+                },
+                {
+                    "name": "consultar_ticket",
+                    "description": "Busca el detalle de un ticket o recibo de venta por su número o folio.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "numero": {"type": "string", "description": "Número o folio del ticket"}
+                        },
+                        "required": ["numero"]
+                    }
+                }
+            ]
+        }]
+
+        system_instruction = {
+            "parts": [{
+                "text": "Eres Vonne Assistant, el asistente ejecutivo de inteligencia artificial de Vonne Boutique en Plaza La Fragua, Saltillo, Coahuila. Tu función es responder de manera natural, conversacional y amigable a las dudas del equipo y dueña sobre la boutique, ventas, inventario, percheros y caja. Usa formato atractivo de Telegram con emojis, negritas y listas limpias. Si te preguntan algo sobre la tienda o mercancía, usa las herramientas disponibles para obtener datos 100% verídicos y exactos de Loyverse POS."
+            }]
+        }
+
+        contents = [{"role": "user", "parts": [{"text": user_message}]}]
+        payload = {
+            "contents": contents,
+            "tools": tools_def,
+            "system_instruction": system_instruction
+        }
+
+        try:
+            req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers={"Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                res = json.loads(resp.read().decode("utf-8"))
+
+            candidate = res.get("candidates", [{}])[0]
+            content = candidate.get("content", {})
+            parts = content.get("parts", [])
+
+            for part in parts:
+                if "functionCall" in part:
+                    fc = part["functionCall"]
+                    fname = fc.get("name")
+                    fargs = fc.get("args", {})
+
+                    tool_res = self.execute_tool(fname, fargs)
+
+                    contents.append({"role": "model", "parts": [{"functionCall": fc}]})
+                    contents.append({
+                        "role": "function",
+                        "parts": [{
+                            "functionResponse": {
+                                "name": fname,
+                                "response": {"output": tool_res}
+                            }
+                        }]
+                    })
+
+                    followup_payload = {
+                        "contents": contents,
+                        "tools": tools_def,
+                        "system_instruction": system_instruction
+                    }
+
+                    req2 = urllib.request.Request(url, data=json.dumps(followup_payload).encode("utf-8"), headers={"Content-Type": "application/json"})
+                    with urllib.request.urlopen(req2, timeout=15) as resp2:
+                        res2 = json.loads(resp2.read().decode("utf-8"))
+
+                    c2 = res2.get("candidates", [{}])[0]
+                    parts2 = c2.get("content", {}).get("parts", [])
+                    for p2 in parts2:
+                        if "text" in p2:
+                            return p2["text"]
+
+                if "text" in part:
+                    return part["text"]
+
+        except Exception as e:
+            print(f"[AVISO Gemini] No se pudo procesar con IA: {e}")
+            return None
+
+        return None
+
+    # -------------------------------------------------------------------------
     # Cerebro del Asistente: Comprensión de Intenciones
     # -------------------------------------------------------------------------
     def answer(self, text):
@@ -609,6 +795,12 @@ class LoyverseAssistant:
         clean = re.sub(r'^/(?:asistente|pregunta|ask|consulta)\s*', '', clean)
         clean = re.sub(r'@\w+', '', clean).strip()
         norm = normalize_text(clean)
+
+        # 0. Si hay Gemini API configurada, delegar a Inteligencia Artificial Conversacional
+        if self.gemini_api_key:
+            ai_reply = self.ask_gemini(text)
+            if ai_reply:
+                return ai_reply
 
         garment_words = [
             "blazer", "vestido", "falda", "short", "blusa", "chaleco", "capa",
