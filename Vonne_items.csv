@@ -1,0 +1,316 @@
+Handle,REF,Nombre,Categoria,Descripción,Vendido por peso,Opción 1 nombre,Opción 1 valor,Opción 2 nombre,Opción 2 valor,Opción 3 nombre,Opción 3 valor,Coste,Codigo de barras,REF del componente,Cantidad del componente,Seguir el Inventario,Disponibles para la venta [VONNE BOUTIQUE],Precio [VONNE BOUTIQUE],En inventario [VONNE BOUTIQUE],Existencias bajas [VONNE BOUTIQUE],"modificador - ""tallas"""
+anticipos,10296,Anticipos,Anticipos,,N,,,,,,,0.00,,,,N,Y,variable,,,N
+balzer-verde-botella-m,10042,Balzer verde botella M,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,1.000,,N
+blazer-amarillo-ch,10200,Blazer amarillo Ch,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,3.000,0.000,N
+blazer-amarillo-g,10104,Blazer amarillo G,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,1.000,0.000,N
+blazer-amarillo-m,10201,Blazer Amarillo M,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,1.000,0.000,N
+blazer-amarillo-xl,10105,Blazer Amarillo XL,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,3.000,0.000,N
+blazer-amarillo-xxl,10285,Blazer amarillo xxl,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,1.000,0.000,N
+blazer-arena,10297,Blazer arena Ch,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,0.000,0.000,N
+blazer-arena-g,10253,Blazer Arena G,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,0.000,,N
+blazer-arena-m,10252,Blazer Arena M,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,0.000,,N
+blazer-arena-xl,10254,Blazer arena XL,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,2.000,,N
+blazer-arena-xxl,10255,Blazer arena XXL,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,0.000,,N
+blazer-azul-bebé-g,10017,Blazer Azul bebé G,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,0.000,0.000,N
+blazer-azul-bebé-m,10011,Blazer Azul bebé M,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,0.000,0.000,N
+blazer-azul-bebé-xl,10018,Blazer Azul bebé xl,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,4.000,0.000,N
+blazer-azul-marino,10298,Blazer azul marino CH,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,0.000,0.000,N
+blazer-azul-marino-xxl,10004,Blazer Azul Marino XXL,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,0.000,,N
+blazer-azul-rey-ch,10025,Blazer Azul rey Ch,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,2.000,0.000,N
+blazer-azul-rey-g,10019,Blazer Azul rey G,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,5.000,0.000,N
+blazer-azul-rey,10159,Blazer azul rey M,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,1.000,0.000,N
+blazer-azul-rey-xl,10020,Blazer Azul rey XL,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,5.000,0.000,N
+blazer-azul-rey-xxl,10131,Blazer azul rey XXL,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,2.000,0.000,N
+blazer-blanco-ch,10286,Blazer blanco Ch,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,1.000,0.000,N
+blazer-blanco-g,10031,Blazer blanco G,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,0.000,0.000,Y
+blazer-blanco-m,10027,Blazer blanco M,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,0.000,10.000,Y
+blazer-blanco-xl,10032,Blazer blanco Xl,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,0.000,0.000,Y
+blazer-blanco-xxl,10033,Blazer blanco xxl,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,3.000,0.000,Y
+blazer-café-ch,10021,Blazer café ch,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,0.000,1.000,Y
+blazer-café-xl,10024,Blazer café Xl,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,1.000,1.000,Y
+blazer-chedron-xl,10152,Blazer Chedron xl,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,0.000,0.000,N
+blazer-fiuscia-ch,10133,Blazer Fiuscia Ch,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,5.000,0.000,N
+blazer-fiuscia-g,10197,Blazer Fiuscia G,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,1.000,0.000,N
+blazer-fiuscia,10123,Blazer Fiuscia M,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,1.000,0.000,N
+blazer-fiuscia-xl,10198,Blazer Fiuscia Xl,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,0.000,0.000,N
+blazer-fiuscia-xxl,10199,Blazer Fiuscia XXL,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,0.000,0.000,N
+blazer-gris-g,10100,Blazer gris G,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,2.000,,N
+blazer-gris,10312,Blazer gris M,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,2.000,0.000,N
+blazer-gris-xl,10313,Blazer gris XL,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,1.000,,N
+blazer-gris-xxl,10314,Blazer gris XXL,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,0.000,,N
+blazer-lila,10189,Blazer lila Ch,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,3.000,0.000,N
+blazer-lila-g,10249,Blazer lila G,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,6.000,0.000,N
+blazer-lila-m,10115,Blazer lila M,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,0.000,0.000,N
+blazer-lila-xl,10128,Blazer lila xl,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,1.000,0.000,N
+blazer-magenta,10119,Blazer magenta Ch,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,0.000,0.000,N
+blazer-magenta-g,10081,Blazer Magenta G,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,0.000,0.000,N
+blazer-magenta-1,10244,Blazer magenta M,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,0.000,0.000,N
+blazer-magenta-xl,10082,Blazer Magenta XL,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,0.000,0.000,N
+blazer-magenta-xxl,10270,Blazer magenta xxl,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,0.000,0.000,N
+blazer-moka,10012,Blazer Moca  ch,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,0.000,1.000,Y
+balser-moka,10013,Blazer moca  M,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,-1.000,1.000,Y
+blazer-moka-xl,10015,Blazer moca  Xl,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,0.000,1.000,Y
+blazer-negro,10003,Blazer negro CH,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,1.000,5.000,Y
+blazer-negro-g,10009,Blazer negro G,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,4.000,1.000,N
+blazer-negro-m,10008,Blazer negro M,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,0.000,0.000,Y
+blazer-negro-xl,10187,Blazer negro xl,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,1.000,0.000,N
+blazer-negro-xxl,10188,Blazer negro xxl,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,2.000,0.000,N
+blazer-rojo-ch,100876,Blazer rojo CH,Blazer,,N,,,,,,,235.00,,,,Y,Y,550.00,11.000,1.000,Y
+blazer-rojo,10001,Blazer rojo M,Blazer,,N,,,,,,,235.00,,,,Y,Y,550.00,1.000,0.000,Y
+blazer-rojo-talla-g,10124,Blazer rojo Talla G,Blazer,,N,,,,,,,250.00,,,,Y,Y,550.00,2.000,0.000,N
+blazer-rojo-xl,10125,Blazer rojo XL,Blazer,,N,,,,,,,250.00,,,,Y,Y,550.00,2.000,0.000,N
+blazer-rojo-xxl,10010,Blazer rojo xxl,Blazer,,N,,,,,,,23700.11,,,,Y,Y,550.00,2.000,0.000,N
+blazer-rosa-palo,10084,Blazer rosa palo Ch,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,0.000,0.000,N
+blazer-rosa-palo-m,10026,Blazer Rosa palo M,Blazer,,N,,,,,,,2370.02,,,,Y,Y,550.00,0.000,0.000,N
+blazer-rosa-palo-xl,10045,Blazer Rosa palo XL,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,0.000,0.000,N
+blazer-rosa-palo-xxl,10106,Blazer Rosa Palo xxl,Blazer,,N,,,,,,,237.00,,,,Y,Y,550.00,0.000,0.000,N
+blazer-rosa-pastel-m-1,10149,Blazer Rosa pastel Ch,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,0.000,0.000,N
+blazer-rosa-pastel-g,10150,Blazer Rosa pastel G,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,1.000,0.000,N
+blazer-rosa-pastel-xl-1,10155,Blazer Rosa pastel XL,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,4.000,0.000,N
+blazer-rosa-pastel-xxl-1,10204,Blazer Rosa pastel XXL,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,2.000,0.000,N
+blazer-verde-botella,10279,Blazer verde botella CH,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,0.000,0.000,N
+blazer-verde-botella-m,10151,Blazer verde botella M,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,0.000,,N
+blazer-verde-botella-xl,10153,Blazer verde botella xl,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,1.000,,N
+blazer-verde-botella-xxl,10195,Blazer verde botella XXL,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,0.000,,N
+blazer-verde-kelly,10300,Blazer verde Kelly,Blazer,,N,,,,,,,230.00,,,,N,Y,550.00,,,N
+blazer-verde-kelly-g,10267,Blazer verde Kelly G,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,0.000,0.000,N
+blazer-verde-kelly-m,10022,Blazer verde Kelly M,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,0.000,0.000,N
+blazer-verde-kelly-xl-1,10269,Blazer verde Kelly XL,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,0.000,0.000,N
+blazer-verde-kelly-xl,10268,Blazer verde Kelly XXL,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,0.000,0.000,N
+blazer-verde-pistache-ch,10016,Blazer verde pistache ch,Blazer,,N,,,,,,,230.00,,,,Y,Y,550.00,0.000,0.000,N
+blusa-lentejuela,10129,Blusa  lentejuela tirantes,Blusas y panty blusas  varias,,N,,,,,,,250.00,,,,Y,Y,550.00,-3.000,0.000,N
+blusa-beige,10245,Blusa beige,Blusas primavera,,N,,,,,,,120.00,,,,N,Y,350.00,,,N
+blusa-bordada-mezclilla,10261,Blusa bordada mezclilla,Blusas primavera,,N,,,,,,,0.00,,,,N,Y,450.00,,,N
+blusa-brillos-$420,10117,Blusa brillos,,,N,,,,,,,0.00,,,,Y,Y,420.00,21.000,0.000,N
+blusa-con-broche-d,10295,Blusa con broche D,Blusas primavera,,N,,,,,,,150.00,,,,Y,Y,350.00,5.000,0.000,N
+blusa-corrugada-sin-mangas,10193,Blusa corrugada sin mangas,Blusas primavera,,N,,,,,,,190.00,,,,Y,Y,400.00,6.000,0.000,N
+blusa-cuello-satin-manga-larga,10047,Blusa cuello satin manga larga,Blusas y panty blusas  varias,,N,,,,,,,0.00,,,,Y,Y,450.00,8.000,,N
+"blusa-cuello,-lycra-algodón-manga-larga",10109,"Blusa cuello, lycra algodón manga larga",Blusas y panty blusas  varias,,N,,,,,,,200.00,,,,Y,Y,450.00,4.000,,N
+"blusa-cuello,-lycra-manga-larga",10108,"Blusa cuello, lycra manga larga",Blusas y panty blusas  varias,,N,,,,,,,200.00,,,,Y,Y,450.00,6.000,,N
+blusa-manga-larga-encaje,10090,Blusa manga larga encaje,Blusas y panty blusas  varias,,N,,,,,,,200.00,,,,Y,Y,500.00,11.000,,N
+blusa-manga-princesa,10192,Blusa manga princesa,Blusas primavera,,N,,,,,,,210.00,,,,Y,Y,450.00,12.000,0.000,N
+blusa-olanes-chifon,10281,Blusa olanes chifon,Blusas primavera,,N,,,,,,,200.00,,,,Y,Y,550.00,23.000,0.000,N
+blusa-pico,10291,Blusa pico,Blusas primavera,,N,,,,,,,190.00,,,,Y,Y,450.00,7.000,0.000,N
+blusa-satin--cuello-holgado,10247,Blusa Satin  cuello holgado,Blusas primavera,,N,,,,,,,110.00,,,,N,Y,350.00,,,N
+blusa-satin-broche-en-hombro,10190,Blusa Satin broche en hombro,Blusas primavera,,N,,,,,,,199.00,,,,Y,Y,500.00,0.000,0.000,N
+blusa-satin-com-broche,10311,Blusa Satin com broche,Blusas primavera,,N,,,,,,,120.00,,,,Y,Y,400.00,8.000,,N
+blusa-satin-con-encaje-en-bastilla,10305,Blusa satin con encaje en bastilla,Blusas primavera,,N,,,,,,,230.00,,,,N,Y,500.00,,,N
+blusa-satin-cuello-halter-sin-espalda,10306,Blusa Satin cuello Halter sin espalda,Blusas primavera,,N,,,,,,,150.00,,,,Y,Y,400.00,5.000,,N
+blusa-satin-lunares,10302,Blusa Satin lunares,Blusas primavera,,N,,,,,,,230.00,,,,N,Y,500.00,,,N
+blusa-satin-una-manga,10191,Blusa Satin una manga,Blusas primavera,,N,,,,,,,200.00,,,,Y,Y,500.00,8.000,0.000,N
+blusa-shifon-ch,10251,Blusa shifon ch,Blusas primavera,,N,,,,,,,100.00,,,,N,Y,300.00,,,N
+blusa-tejida-con-cinto,10290,Blusa tejida con cinto,Blusas primavera,,N,,,,,,,199.00,,,,Y,Y,420.00,6.000,0.000,N
+blusa-tejida-con-detalle-dorado,10301,Blusa tejida con detalle dorado,Blusas primavera,,N,,,,,,,250.00,,,,N,Y,550.00,,,N
+blusa-térmica-jera,10181,Blusa térmica Jera,,,N,,,,,,,60.00,,,,Y,Y,150.00,92.000,,N
+blusón-cuello-alto-camel,10078,Blusón cuello alto UNITALLA,Vestido y blusones tejidos,,N,,,,,,,240.00,,,,Y,Y,700.00,95.000,0.000,Y
+bolsas-viajeras,10097,Bolsas viajeras,Traje de baño,,N,,,,,,,100.00,,,,N,Y,250.00,,,N
+camisa-con-prendedores-dorados,10060,Camisa con prendedores dorados,Camisa,,N,,,,,,,0.00,,,,Y,Y,600.00,6.000,,N
+camisa-mezclilla-(azul-y-café),10232,Camisa mezclilla (ambos modelos),Camisa,,N,,,,,,,200.00,,,,N,Y,550.00,,,N
+blusa-satin-ch,10051,Camisa Satin CH,Camisa,,N,,,,,,,250.00,,,,Y,Y,550.00,26.000,0.000,N
+camisa-satin-g,10053,Camisa Satin G,Camisa,,N,,,,,,,250.00,,,,Y,Y,550.00,11.000,0.000,N
+camisa-satin-m,10052,Camisa Satin M,Camisa,,N,,,,,,,250.00,,,,Y,Y,550.00,6.000,0.000,N
+camisa-satin-xl,10054,Camisa Satin XL,Camisa,,N,,,,,,,250.00,,,,Y,Y,550.00,11.000,0.000,N
+camisa-vaca,10088,Camisa vaca,Camisa,,N,,,,,,,200.00,,,,Y,Y,550.00,1.000,0.000,N
+camisa-vinil,10091,Camisa vinil café,Camisa,,N,,,,,,,300.00,,,,Y,Y,600.00,14.000,0.000,Y
+capa-con-cinto,10050,Capa  Mediana,Abrigos,,N,,,,,,,450.00,,,,Y,Y,900.00,4.000,0.000,Y
+capa,10121,Capa Chica,Abrigos,,N,,,,,,,450.00,,,,Y,Y,900.00,6.000,0.000,Y
+capa-paño-de-lana-negro,10085,Capa Grande,,,N,,,,,,,320.00,,,,Y,Y,900.00,7.000,,Y
+chaleco-con-botones-y-cierre,10299,Chaleco con botones y cierre,Chalecos,,N,,,,,,,250.00,,,,N,Y,600.00,,,N
+chaleco-con-camisa-pegada,10070,Chaleco con camisa pegada,Camisa,,N,,,,,,,0.00,,,,Y,Y,550.00,2.000,,N
+chaleco-con-flores-unitalla,10077,Chaleco con flores unitalla,,,N,,,,,,,0.00,,,,Y,Y,550.00,0.000,,N
+chaleco-cuello-aborregado,10148,Chaleco cuello aborregado,,,N,,,,,,,200.00,,,,Y,Y,550.00,11.000,0.000,N
+chaleco-gamuza-(varios),10157,Chaleco gamuza (varios),,,N,,,,,,,250.00,,,,Y,Y,550.00,2.000,0.000,N
+maxi-chaleco,10146,Chaleco Gamuza con cinto,,,N,,,,,,,0.00,,,,Y,Y,700.00,10.000,0.000,N
+chaleco-mezclilla,10230,Chaleco mezclilla,Chalecos,,N,,,,,,,250.00,,,,N,Y,550.00,,,N
+chaleco-paño-de-lana-largo,10156,Chaleco Paño de lana largo,,,N,,,,,,,300.00,,,,Y,Y,800.00,3.000,0.000,N
+chaleco-peluche-extra-suave,10101,Chaleco peluche con gorro,Abrigos,,N,,,,,,,350.00,,,,Y,Y,800.00,10.000,0.000,Y
+chaleco-tejido-botones-dorados,10229,Chaleco tejido botones dorados,Chalecos,,N,,,,,,,170.00,,,,N,Y,450.00,,,N
+chamarra-cazadora-azul,10132,Chamarra cazadora azul,,,N,,,,,,,300.00,,,,Y,Y,1100.00,4.000,0.000,N
+chamarra-pata-de-gallo,10142,Chamarra pata de gallo,,,N,,,,,,,300.00,,,,Y,Y,900.00,2.000,0.000,N
+chamarra-vinil-negra,10141,Chamarra vinil negra,,,N,,,,,,,300.00,,,,Y,Y,700.00,1.000,,N
+cinto-300,10048,Cinto Delgados,Cintos,,N,,,,,,,150.00,,,,Y,Y,300.00,6.000,0.000,N
+cinto-450,10046,Cinto Gruesos,Cintos,,N,,,,,,,200.00,,,,Y,Y,450.00,21.000,0.000,N
+cinturilla-colombiana-ch,10161,Cinturilla colombiana Ch,Fajas,,N,,,,,,,120.00,,,,Y,Y,300.00,2.000,,N
+cinturilla-colombiana-exch,10160,Cinturilla colombiana exch,Fajas,,N,,,,,,,120.00,,,,Y,Y,300.00,5.000,,N
+cinturilla-colombiana-g,10163,Cinturilla colombiana G,Fajas,,N,,,,,,,120.00,,,,Y,Y,300.00,7.000,,N
+cinturilla-colombiana-m,10162,Cinturilla colombiana M,Fajas,,N,,,,,,,120.00,,,,Y,Y,300.00,4.000,,N
+cinturilla-colombiana-xl,10164,Cinturilla colombiana XL,Fajas,,N,,,,,,,120.00,,,,Y,Y,300.00,17.000,,N
+cinturilla-colombiana-xxl,10165,Cinturilla colombiana xxl,Fajas,,N,,,,,,,120.00,,,,Y,Y,300.00,13.000,,N
+"conjunto--vestir,-botones-dorados-(flor)",10231,"Conjunto  vestir, botones Dorados (flor)",Conjuntos,,N,,,,,,,300.00,,,,N,Y,850.00,,,N
+conjunto-3-piezas-plus,10236,Conjunto 3 piezas Plus,Conjuntos,,N,,,,,,,0.00,,,,Y,Y,600.00,5.000,0.000,N
+conjunto-camisa-y-short-botones,10266,Conjunto camisa y short botones,Conjuntos,,N,,,,,,,0.00,,,,N,Y,550.00,,,N
+conjunto-cargo,10260,Conjunto cargo,Conjuntos,,N,,,,,,,0.00,,,,N,Y,600.00,,,N
+conjunto-chaleco-botones-piedra,10238,Conjunto chaleco botones piedra,Conjuntos,,N,,,,,,,350.00,,,,Y,Y,800.00,0.000,0.000,N
+conjunto-chaleco-y-pantalón-lino,10205,Conjunto chaleco y pantalón lino CH,Conjuntos,,N,,,,,,,350.00,,,,Y,Y,850.00,-7.000,0.000,N
+conjunto-chaleco-y-pantalón-lino-g,10214,Conjunto chaleco y pantalón lino G,Conjuntos,,N,,,,,,,300.00,,,,Y,Y,850.00,-14.000,0.000,N
+conjunto-chaleco-y-pantalón-lino-m,10213,Conjunto chaleco y pantalón lino M,Conjuntos,,N,,,,,,,300.00,,,,Y,Y,850.00,-13.000,0.000,N
+conjunto-chaleco-y-pantalón-lino-xl,10215,Conjunto chaleco y pantalón lino XL,Conjuntos,,N,,,,,,,300.00,,,,Y,Y,850.00,-17.000,0.000,N
+conjunto-croché,10294,Conjunto croché,Conjuntos,,N,,,,,,,380.00,,,,Y,Y,900.00,11.000,0.000,N
+conjunto-curvy,10308,Conjunto Curvy,Conjuntos,,N,,,,,,,250.00,,,,Y,Y,700.00,9.000,,N
+conjunto-falda-short,10237,Conjunto Falda short,Conjuntos,,N,,,,,,,320.00,,,,Y,Y,750.00,1.000,0.000,N
+conjunto-gamuza-plus-chaleco-y-short,10118,Conjunto gamuza PLUS chaleco y short,,,N,,,,,,,300.00,,,,Y,Y,850.00,4.000,0.000,N
+conjunto-halter,10194,Conjunto halter Ch,Conjuntos,,N,,,,,,,350.00,,,,Y,Y,800.00,0.000,0.000,N
+conjunto-halter-g,10217,Conjunto halter G,Conjuntos,,N,,,,,,,300.00,,,,Y,Y,800.00,0.000,0.000,N
+conjunto-halter-m,10216,Conjunto halter M,Conjuntos,,N,,,,,,,300.00,,,,Y,Y,800.00,0.000,0.000,N
+conjunto-ivory-encaje-(falda-y-blusa),10202,Conjunto Ivory encaje (falda y blusa),,,N,,,,,,,300.00,,,,N,Y,950.00,,,N
+conjunto-manga-larga,10307,Conjunto manga larga,Conjuntos,,N,,,,,,,200.00,,,,Y,Y,700.00,8.000,,N
+conjunto-mezclilla-unitalla,10228,Conjunto mezclilla Unitalla,Conjuntos,,N,,,,,,,330.00,,,,Y,Y,800.00,1.000,0.000,N
+conjunto-overzise-rayas,10235,Conjunto Overzise rayas,Conjuntos,,N,,,,,,,0.00,,,,Y,Y,550.00,1.000,0.000,N
+conjunto-pantalón-y-camisa-botones,10265,Conjunto pantalón y camisa botones,Conjuntos,,N,,,,,,,0.00,,,,N,Y,700.00,,,N
+conjunto-polar-pijama,10126,Conjunto polar pijama,,,N,,,,,,,250.00,,,,Y,Y,550.00,7.000,0.000,N
+conjunto-satin-blusa-y-pantalón,10304,Conjunto satin blusa y pantalón,Conjuntos,,N,,,,,,,250.00,,,,N,Y,750.00,,,N
+conjunto-sin-manga,10309,Conjunto sin manga,Conjuntos,,N,,,,,,,200.00,,,,Y,Y,650.00,5.000,,N
+conjunto-extra-suave,10098,Conjunto tejidos varios,,,N,,,,,,,350.00,,,,Y,Y,800.00,28.000,0.000,N
+conjunto-zara-g,10263,Conjunto Zara G,Conjuntos,,N,,,,,,,0.00,,,,Y,Y,850.00,10.000,0.000,N
+conjunto-zara-m,10262,Conjunto Zara M,Conjuntos,,N,,,,,,,0.00,,,,Y,Y,850.00,15.000,0.000,N
+conjunto-zara-xl,10264,Conjunto Zara XL,Conjuntos,,N,,,,,,,0.00,,,,Y,Y,850.00,-1.000,0.000,N
+cuellos-peludos,10166,Cuellos peludos,,,N,,,,,,,60.00,,,,Y,Y,200.00,3.000,,N
+envío,10130,Envío,,,N,,,,,,,100.00,,,,N,Y,variable,,,N
+envío-saltillo,10005,envío saltillo,,,N,,,,,,,0.00,,,,N,Y,80.00,,,N
+faja-3-velcros-25-cm-exch,10171,Faja 3 Velcros 25 cm Exch,Fajas,,N,,,,,,,150.00,,,,Y,Y,350.00,8.000,,N
+faja-3-velcros-25-cm-g,10174,Faja 3 Velcros 25 cm G,Fajas,,N,,,,,,,150.00,,,,Y,Y,350.00,3.000,,N
+faja-3-velcros-25-cm-xl,10175,Faja 3 Velcros 25 cm XL,Fajas,,N,,,,,,,150.00,,,,Y,Y,350.00,4.000,,N
+faja-3-velcros-25cm-ch,10172,Faja 3 Velcros 25cm Ch,Fajas,,N,,,,,,,150.00,,,,Y,Y,350.00,1.000,,N
+faja-3-velcros-25cm-m,10173,Faja 3 Velcros 25cm M,Fajas,,N,,,,,,,150.00,,,,Y,Y,350.00,0.000,,N
+faja-3-velcros-33-cm-ch,10176,Faja 3 Velcros 33 cm Ch,Fajas,,N,,,,,,,180.00,,,,Y,Y,400.00,5.000,,N
+faja-3-velcros-33-cm-g,10178,Faja 3 Velcros 33 cm G,Fajas,,N,,,,,,,180.00,,,,Y,Y,400.00,6.000,,N
+faja-3-velcros-33-cm-xl,10179,Faja 3 Velcros 33 cm XL,Fajas,,N,,,,,,,180.00,,,,Y,Y,400.00,1.000,,N
+faja-3-velcros-33cm-m,10177,Faja 3 Velcros 33cm M,Fajas,,N,,,,,,,180.00,,,,Y,Y,400.00,7.000,,N
+faja-short-c/cinturilla-integrada-negra--g,10158,Faja short c/cinturilla integrada negra  G,Fajas,,N,,,,,,,150.00,,,,Y,Y,380.00,5.000,,N
+faja-short-lycra-delgada-ch,10007,Faja short lycra delgada Ch,,,N,,,,,,,170.00,,,,Y,Y,400.00,2.000,0.000,N
+faja-short-lycra-delgada-g,10076,Faja Short lycra Delgada G,Fajas,,N,,,,,,,170.00,,,,Y,Y,400.00,8.000,0.000,N
+faja-short-lycra-delgada-m,10075,Faja Short lycra Delgada M,Fajas,,N,,,,,,,170.00,,,,Y,Y,400.00,6.000,0.000,N
+faja-short-lycra-delgada-xl,10079,Faja Short lycra Delgada Xl,Fajas,,N,,,,,,,170.00,,,,Y,Y,400.00,-2.000,0.000,N
+falda-/-short-vinil,10089,Falda / Short vinil NEGRA CH,Faldas,,N,,,,,,,180.00,,,,Y,Y,450.00,23.000,0.000,N
+falda-/-short-vinil-negra-g,10169,Falda / short vinil Negra G,Faldas,,N,,,,,,,180.00,,,,Y,Y,450.00,49.000,,N
+falda-/-short-vinil-negra-m,10168,Falda / Short vinil Negra M,Faldas,,N,,,,,,,180.00,,,,Y,Y,450.00,69.000,,N
+falda-/-short-vinil-negra-xl,10170,Falda / Short Vinil Negra XL,Faldas,,N,,,,,,,180.00,,,,Y,Y,450.00,27.000,,N
+falda-abertura-de-lado-ch,10066,Falda abertura De Lado CH,Faldas,,N,,,,,,,200.00,,,,Y,Y,500.00,25.000,0.000,N
+falda-abertura-de-lado-g,10068,Falda abertura De Lado G,Faldas,,N,,,,,,,200.00,,,,Y,Y,500.00,0.000,0.000,N
+falda-abertura-de-lado-m,10067,Falda abertura De Lado M,Faldas,,N,,,,,,,200.00,,,,Y,Y,500.00,5.000,0.000,N
+falda-abertura-de-lado-xl,10069,Falda abertura De Lado XL,Faldas,,N,,,,,,,200.00,,,,Y,Y,500.00,0.000,0.000,N
+falda-abertura-al-frente-xxl,10055,Falda abertura enfrente  XXL,Faldas,,N,,,,,,,200.00,,,,Y,Y,500.00,28.000,,N
+falda-abertura-enfrente-ch,10071,Falda abertura Enfrente CH,Faldas,,N,,,,,,,200.00,,,,Y,Y,500.00,28.000,0.000,N
+falda-abertura-enfrente-g,10073,Falda abertura Enfrente G,Faldas,,N,,,,,,,200.00,,,,Y,Y,500.00,26.000,0.000,N
+falda-abertura-enfrente-m,10072,Falda abertura Enfrente M,Faldas,,N,,,,,,,200.00,,,,Y,Y,500.00,20.000,0.000,N
+falda-abertura-enfrente-xl,10074,Falda abertura Enfrente XL,Faldas,,N,,,,,,,200.00,,,,Y,Y,500.00,43.000,0.000,N
+falda-gamuza-con-cinto-animal-print,10114,Falda gamuza con cinto animal print,Faldas,,N,,,,,,,200.00,,,,Y,Y,550.00,5.000,0.000,N
+falda-larga-vaca,10094,Falda larga vaca abertura al frente,Faldas,,N,,,,,,,250.00,,,,Y,Y,600.00,14.000,0.000,N
+falda-lentejuela-tinto-y-verde,10136,Falda lentejuela Tinto y verde,Faldas,,N,,,,,,,200.00,,,,Y,Y,500.00,4.000,,N
+falda-mezclilla-abertura,10250,Falda mezclilla abertura,Faldas,,N,,,,,,,150.00,,,,N,Y,450.00,,,N
+falda-satin-g,10036,Falda satin G,Faldas,,N,,,,,,,230.00,,,,Y,Y,600.00,8.000,0.000,N
+falda-satin-m,10035,Falda satin M,Faldas,,N,,,,,,,230.00,,,,Y,Y,600.00,4.000,0.000,Y
+falda-satin-primavera,10248,Falda satin primavera,Faldas,,N,,,,,,,200.00,,,,N,Y,500.00,,,N
+falda-satin-ch,10034,Falda satin XL,Faldas,,N,,,,,,,230.00,,,,Y,Y,600.00,22.000,0.000,Y
+falda-short-camel-c/cinto-grueso,10140,Falda short camel c/cinto grueso,Faldas,,N,,,,,,,200.00,,,,Y,Y,550.00,4.000,,N
+falda-short-con-broche,10293,Falda short con broche,Faldas,,N,,,,,,,200.00,,,,Y,Y,480.00,16.000,0.000,N
+falda-short-vaca,10037,Falda short vaca,Faldas,,N,,,,,,,0.00,,,,Y,Y,500.00,11.000,,N
+falda-short-vinil-beige,10086,Falda short vinil beige,Faldas,,N,,,,,,,200.00,,,,Y,Y,550.00,36.000,0.000,N
+falda-tejida-circular-corta,10139,Falda tejida circular corta,Faldas,,N,,,,,,,200.00,,,,Y,Y,500.00,28.000,,N
+gabardina-gamuza,10145,Gabardina gamuza con cinto,,,N,,,,,,,0.00,,,,Y,Y,800.00,9.000,0.000,N
+gorro,10120,GORRO,Varios,,N,,,,,,,100.00,,,,Y,Y,200.00,15.000,0.000,N
+leggins-aborregado,10144,Leggins aborregado,Pantalon,,N,,,,,,,0.00,,,,Y,Y,350.00,16.000,0.000,N
+leggins-térmicos-jera,10180,Leggins térmicos Jera,,,N,,,,,,,40.00,,,,Y,Y,120.00,95.000,0.000,N
+lencería-150,10182,Lencería 150,,,N,,,,,,,50.00,,,,N,Y,150.00,,,N
+lencería-300,10183,Lencería 300,,,N,,,,,,,100.00,,,,N,Y,300.00,,,N
+liquidados,10113,Liquidados,Liquidados,,N,,,,,,,0.00,,,,N,Y,variable,,,N
+maxi-chaleco-ch,10271,Maxi chaleco Ch,Chalecos,,N,,,,,,,230.00,,,,Y,Y,500.00,4.000,0.000,N
+maxi-chaleco-g,10273,Maxi chaleco G,Chalecos,,N,,,,,,,230.00,,,,Y,Y,500.00,0.000,0.000,N
+maxi-chaleco-m,10272,Maxi chaleco M,Chalecos,,N,,,,,,,230.00,,,,Y,Y,500.00,0.000,0.000,N
+maxi-chaleco-xl,10274,Maxi chaleco XL,Chalecos,,N,,,,,,,230.00,,,,Y,Y,500.00,1.000,0.000,N
+maxi-chaleco-xxl,10275,Maxichaleco XXL,Chalecos,,N,,,,,,,230.00,,,,Y,Y,500.00,0.000,0.000,N
+medias-de-puntos,10096,Medias De Puntos,Medias,,N,,,,,,,60.00,,,,Y,Y,150.00,11.000,0.000,N
+medias-efecto-piel,10043,Medias Efecto piel,Medias,,N,,,,,,,80.00,,,,Y,Y,200.00,5.000,0.000,N
+medias-micro-fibra,10044,Medias micro fibra,Medias,,N,,,,,,,50.00,,,,Y,Y,200.00,95.000,0.000,N
+medias-niña,10112,Medias niña,Medias,,N,,,,,,,70.00,,,,Y,Y,250.00,21.000,0.000,N
+mini-falda-cargo,10256,Mini falda cargo,Faldas,,N,,,,,,,100.00,,,,N,Y,450.00,,,N
+mini-falda-gamuza-con-mini-abertura-al-frente,10095,Mini falda gamuza con mini abertura al frente,Faldas,,N,,,,,,,200.00,,,,Y,Y,500.00,70.000,0.000,N
+mini-falda-vinil-g,10057,Mini Falda Vinil G,Faldas,,N,,,,,,,100.00,,,,Y,Y,500.00,19.000,0.000,N
+mini-falda-vinil-m,10056,Mini Falda Vinil M,Faldas,,N,,,,,,,100.00,,,,Y,Y,500.00,32.000,0.000,N
+mini-falda-vinil-xl,10058,Mini Falda Vinil XL,Faldas,,N,,,,,,,100.00,,,,Y,Y,500.00,10.000,0.000,N
+mini-falda-vinil-xxl,10059,Mini Falda Vinil XXL,Faldas,,N,,,,,,,100.00,,,,Y,Y,500.00,15.000,0.000,N
+palazo-rayas-completo,10246,Palazo rayas completo,Vestidos primavera,,N,,,,,,,250.00,,,,N,Y,600.00,,,N
+pantalón-botones-a-los-laterales-xl,10211,Pantalón botones a los laterales XL,Pantalon,,N,,,,,,,200.00,,,,Y,Y,550.00,-4.000,0.000,N
+pantalon-botones-a-los-laterales-xxl,10212,Pantalón botones a los laterales XXL,Pantalon,,N,,,,,,,200.00,,,,Y,Y,550.00,5.000,0.000,N
+pantalón-botones-en-los-laterales-g,10210,Pantalón botones en los laterales G,Pantalon,,N,,,,,,,200.00,,,,Y,Y,550.00,-2.000,0.000,N
+pantalón-botones-en-los-laterales,10203,Pantalón botones en los laterales M,Pantalon,,N,,,,,,,200.00,,,,Y,Y,550.00,-5.000,0.000,N
+pantalón-cinto-ch,10221,Pantalón cinto Ch,Pantalon,,N,,,,,,,200.00,,,,Y,Y,600.00,6.000,0.000,N
+pantalón-cinto-g,10223,Pantalón cinto G,Pantalon,,N,,,,,,,200.00,,,,Y,Y,600.00,2.000,0.000,N
+pantalón-cinto-m,10222,Pantalón cinto M,Pantalon,,N,,,,,,,200.00,,,,Y,Y,600.00,0.000,0.000,N
+pantalón-de-vestir,10000,Pantalón de vestir,Pantalon,,N,,,,,,,250.00,,,,Y,Y,500.00,2.000,,N
+pantalón-gamuza,10147,Pantalon gamuza camel doble cinto,Pantalon,,N,,,,,,,300.00,,,,Y,Y,600.00,2.000,0.000,N
+pantalón-lentejuela-oferta,10167,Pantalón lentejuela OFERTA,OFERTAS,,N,,,,,,,280.00,,,,Y,Y,500.00,16.000,,N
+pantalón-lunares,10303,Pantalón lunares,Pantalon,,N,,,,,,,230.00,,,,N,Y,600.00,,,N
+pantalón-pata-de-elefante-m,10225,Pantalón pata de elefante M,Pantalon,,N,,,,,,,210.00,,,,Y,Y,600.00,0.000,0.000,N
+pantalón-pata-de-elefante-xl,10227,Pantalón pata de elefante Xl,Pantalon,,N,,,,,,,210.00,,,,Y,Y,600.00,0.000,0.000,N
+pantalón-pata-elefante,10184,Pantalón PATA ELEFANTE,,,N,,,,,,,290.00,,,,N,Y,600.00,,,N
+pantalón-pata-elefante-ch,10224,Pantalón pata elefante Ch,Pantalon,,N,,,,,,,210.00,,,,Y,Y,600.00,8.000,0.000,N
+pantalón-pata-elefante-g,10226,Pantalón pata elefante G,Pantalon,,N,,,,,,,210.00,,,,Y,Y,600.00,0.000,0.000,N
+pantalón-playero-estampado,10257,Pantalón playero estampado,Pantalon,,N,,,,,,,100.00,,,,N,Y,300.00,,,N
+pantalón-rayas-celeste-y-beige,10093,Pantalón rayas celeste y beige,Pantalon,,N,,,,,,,200.00,,,,N,Y,450.00,,,N
+pantalón-vinilo-entubado-ch,000000,Pantalón vinil entubado CH,Pantalon,,N,,,,,,,160.00,,,,Y,Y,450.00,15.000,5.000,Y
+pantalón-vinilo-entubado-ch-1,10028,Pantalón vinil entubado M,Pantalon,,N,,,,,,,160.00,,,,Y,Y,450.00,2.000,5.000,Y
+pantalón-vinil-recto-camel,10134,Pantalón vinil recto camel,Pantalon,,N,,,,,,,250.00,,,,Y,Y,600.00,6.000,,N
+pantalon-vinil-recto,10002,Pantalon vinil recto CH,Pantalon,,N,,,,,,,160.00,,,,Y,Y,500.00,30.000,0.000,Y
+pantalon-vinil-recto-g,10039,Pantalon vinil recto G,Pantalon,,N,,,,,,,160.00,,,,Y,Y,500.00,34.000,0.000,Y
+pantalon-vinil-recto-m,10038,Pantalon vinil recto M,Pantalon,,N,,,,,,,160.00,,,,Y,Y,500.00,24.000,0.000,Y
+pantalon-vinil-recto-xl,10040,Pantalon vinil recto XL,Pantalon,,N,,,,,,,160.00,,,,Y,Y,500.00,37.000,0.000,Y
+pantalon-vinil-recto-xl-1,10049,Pantalon vinil recto XXL,Pantalon,,N,,,,,,,165.00,,,,Y,Y,500.00,12.000,0.000,N
+pantalón-zara-ch,10186,Pantalón zara Ch,Pantalon,,N,,,,,,,200.00,,,,Y,Y,550.00,10.000,0.000,N
+pantalón-zara-g,10220,Pantalón Zara G,Pantalon,,N,,,,,,,200.00,,,,Y,Y,550.00,11.000,0.000,N
+pantalón-zara-m,10219,Pantalón Zara M,Pantalon,,N,,,,,,,200.00,,,,Y,Y,550.00,1.000,0.000,N
+pants-tejido,10143,Pants tejido unitalla,Pantalon,,N,,,,,,,0.00,,,,Y,Y,450.00,11.000,0.000,N
+panty-blusa-algodón-primavera,10242,Panty blusa algodón primavera,Blusas y panty blusas  varias,,N,,,,,,,150.00,,,,N,Y,450.00,,,N
+panty-blusa-varias,10111,Panty blusa varias,Blusas y panty blusas  varias,,N,,,,,,,200.00,,,,Y,Y,500.00,56.000,0.000,N
+pareo-falda,10234,Pareo Falda,Traje de baño,,N,,,,,,,120.00,,,,Y,Y,300.00,8.000,0.000,N
+pijama-corazones,10080,Pijama corazones,,,N,,,,,,,100.00,,,,Y,Y,250.00,2.000,,N
+playera-mexicana-dama,10196,Playera Mexicana Dama,Playera,,N,,,,,,,160.00,,,,N,Y,350.00,,,N
+playera-rayas-corta,10218,Playera rayas corta,Blusas primavera,,N,,,,,,,100.00,,,,N,Y,350.00,,,N
+playeras-san-valentín,10185,Playeras san Valentín,,,N,,,,,,,115.00,,,,N,Y,300.00,,,N
+prensas-liquidación-primavera,10243,Prendas liquidación RACK,Liquidaciones,,N,,,,,,,0.00,,,,N,Y,variable,,,N
+"set-3-piezas-(chaleco,-cinto-y-camisa)",10087,"Set 3 piezas (chaleco, cinto y camisa)",,,N,,,,,,,200.00,,,,Y,Y,600.00,21.000,0.000,N
+set-chaleco-con-rombos,10065,Set chaleco con rombos,,,N,,,,,,,0.00,,,,Y,Y,550.00,5.000,,N
+set-falda-tinto-y-blusa-blanca,10110,Set falda tinto y blusa blanca,,,N,,,,,,,300.00,,,,Y,Y,600.00,2.000,0.000,N
+short-de-agua-dama,10209,Short de agua Dama,Traje de baño,,N,,,,,,,100.00,,,,N,Y,250.00,,,N
+short-de-agua-niño,10208,Short de agua NIÑO,Traje de baño,,N,,,,,,,0.00,,,,N,Y,250.00,,,N
+short-de-vestir-botón,10283,Short de vestir botón,Short,,N,,,,,,,150.00,,,,Y,Y,450.00,20.000,0.000,N
+short-gamuza,10092,Short Gamuza c/ cinto grueso,Short,,N,,,,,,,325.00,,,,Y,Y,550.00,5.000,0.000,Y
+short-gamuza-1,10116,Short gamuza camel c/ evilla s/cinto,Short,,N,,,,,,,200.00,,,,Y,Y,550.00,5.000,0.000,N
+short-lentejuela,10103,Short lentejuela ch,Short,,N,,,,,,,280.00,,,,Y,Y,600.00,21.000,0.000,N
+short-lentejuela-gv,10030,Short lentejuela G,Short,,N,,,,,,,280.00,,,,Y,Y,600.00,34.000,0.000,N
+short-lentejuela-m,10029,Short lentejuela M,Short,,N,,,,,,,280.00,,,,Y,Y,600.00,65.000,0.000,N
+short-lino-de-moño,10282,Short lino de moño,Short,,N,,,,,,,150.00,,,,Y,Y,450.00,38.000,0.000,N
+short-vinil-ch,10061,Short vinil talle alto CH,Short,,N,,,,,,,250.00,,,,Y,Y,550.00,48.000,0.000,N
+short-vinil-g,10063,Short vinil talle alto G,Short,,N,,,,,,,250.00,,,,Y,Y,550.00,41.000,0.000,N
+short-vinil-m,10062,Short vinil talle alto M,Short,,N,,,,,,,250.00,,,,Y,Y,550.00,40.000,0.000,N
+short-vinil-xl,10064,Short vinil talle alto XL,Short,,N,,,,,,,250.00,,,,Y,Y,550.00,39.000,0.000,N
+short-zara,10014,Short Zara,Short,,N,,,,,,,0.00,,,,N,Y,450.00,,,N
+sombrero-grande-playa,10239,Sombrero grande playa,Traje de baño,,N,,,,,,,100.00,,,,Y,Y,250.00,4.000,0.000,N
+sombrero-tejido-colores-playa,10240,Sombrero tejido colores playa,Traje de baño,,N,,,,,,,80.00,,,,Y,Y,250.00,5.000,0.000,N
+suéter-peluche-con-gorro,10135,Suéter peluche con gorro,,,N,,,,,,,200.00,,,,Y,Y,550.00,6.000,,N
+suéter-tejido-unitalla,10107,Suéter tejido  Unitalla (varios),Suéter,,N,,,,,,,200.00,,,,Y,Y,550.00,50.000,0.000,N
+top-algodón-varios-colores,10258,Top algodón varios colores,Blusas primavera,,N,,,,,,,100.00,,,,N,Y,250.00,,,N
+traje-de-baño-niña,10207,Traje de baño niña,Traje de baño,,N,,,,,,,0.00,,,,N,Y,250.00,,,N
+trajes-de-baño-dama,10206,Trajes de baño Dama,Traje de baño,,N,,,,,,,100.00,,,,N,Y,300.00,,,N
+tutu-niña,10287,Tutu niña,Mexicanas,,N,,,,,,,75.00,,,,N,Y,200.00,,,N
+venta-envíos-efectivo,10102,Venta Envíos Efectivo,,,N,,,,,,,0.00,,,,N,Y,variable,,,N
+venta-general,10006,Venta general,,,N,,,,,,,150.00,,,,N,Y,variable,,,N
+vestido-(camisola)-manga-larga-gamuza,10137,Vestido (camisola) manga larga gamuza,,,N,,,,,,,358.00,,,,Y,Y,700.00,2.000,,N
+vestido-atablonado-tejido-tinto,10083,Vestido Atablonado UNITALLA,Vestido y blusones tejidos,,N,,,,,,,270.00,,,,Y,Y,650.00,-2.000,26.000,Y
+vestido-botones-y-manga-3/4,10259,Vestido botones y manga 3/4,Vestidos primavera,,N,,,,,,,250.00,,,,N,Y,600.00,,,N
+vestido-camisero-manga-corta,10276,Vestido camisero manga corta,Vestidos primavera,,N,,,,,,,300.00,,,,N,Y,600.00,,,N
+vestido-campesino-manga-3/4,10127,Vestido campesino manga 3/4,Vestido y blusones tejidos,,N,,,,,,,350.00,,,,Y,Y,580.00,0.000,0.000,N
+vestido-chifon-con-prendedor,10292,Vestido chifon con prendedor,Vestidos primavera,,N,,,,,,,350.00,,,,Y,Y,800.00,7.000,0.000,N
+corte-a,10041,vestido Corte A UNITALLA,Vestido y blusones tejidos,,N,,,,,,,280.00,,,,Y,Y,650.00,-7.000,58.000,N
+vestido-crochet-sin-mangas,10023,Vestido crochet sin mangas,Vestidos primavera,,N,,,,,,,300.00,,,,N,Y,950.00,,,N
+vestido-cuello-v-lino,10233,Vestido cuello V lino,Vestidos primavera,,N,,,,,,,230.00,,,,Y,Y,550.00,0.000,0.000,N
+vestido-flores-cinto-tela,10280,Vestido flores cinto tela,Vestidos primavera,,N,,,,,,,300.00,,,,Y,Y,750.00,8.000,0.000,N
+vestido-gamuza-8-botones,10154,Vestido gamuza 8 botones,,,N,,,,,,,350.00,,,,Y,Y,900.00,7.000,0.000,N
+vestido-gamuza,10099,Vestido gamuza manga corta,Vestido y blusones tejidos,,N,,,,,,,200.00,,,,Y,Y,550.00,5.000,0.000,N
+vestido-largo-con-abertura,10310,Vestido largo con abertura,Vestidos primavera,,N,,,,,,,200.00,,,,Y,Y,600.00,13.000,,N
+vestido-lentejuela-oferta,10138,Vestido lentejuela OFERTA,OFERTAS,,N,,,,,,,0.00,,,,Y,Y,500.00,22.000,0.000,N
+vestido-mesh-sin-manga,10277,Vestido mesh sin manga,Vestidos primavera,,N,,,,,,,260.00,,,,Y,Y,600.00,2.000,0.000,N
+vestido-rayado,10284,Vestido rayado,Vestidos primavera,,N,,,,,,,350.00,,,,Y,Y,700.00,17.000,0.000,N
+vestido-sin-mangas-floreado,10278,Vestido sin mangas floreado,Vestidos primavera,,N,,,,,,,300.00,,,,Y,Y,650.00,0.000,0.000,N
+vestido-vinil,10122,Vestido vinil,Vestido y blusones tejidos,,N,,,,,,,300.00,,,,Y,Y,600.00,14.000,0.000,Y
+voceras-playa,10241,Voceras playa,Traje de baño,,N,,,,,,,60.00,,,,Y,Y,200.00,2.000,0.000,N

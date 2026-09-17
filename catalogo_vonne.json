@@ -1,0 +1,398 @@
+[
+  {
+    "codigo": "VB-10121",
+    "nombre": "Capa",
+    "categoria": "abrigos-chalecos",
+    "precio": 900.0,
+    "precio_original": 1125,
+    "tallas": [
+      "CH",
+      "M",
+      "G"
+    ],
+    "stock": 17.0,
+    "etiqueta": "Colección Gala",
+    "foto_url": "https://api.loyverse.com/image/6739931f-99ad-4b45-b090-d521b9624335",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: CH, M, G. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10101",
+    "nombre": "Chaleco Peluche Con Gorro",
+    "categoria": "abrigos-chalecos",
+    "precio": 800.0,
+    "precio_original": 1000,
+    "tallas": [
+      "UNITALLA"
+    ],
+    "stock": 10.0,
+    "etiqueta": "Colección Gala",
+    "foto_url": "https://api.loyverse.com/image/8f25f547-46e0-4b9a-9c9d-1054d810d4a9",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: UNITALLA. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10098",
+    "nombre": "Conjunto Tejidos Varios",
+    "categoria": "conjuntos",
+    "precio": 800.0,
+    "precio_original": 1000,
+    "tallas": [
+      "UNITALLA"
+    ],
+    "stock": 28.0,
+    "etiqueta": "Colección Gala",
+    "foto_url": "https://api.loyverse.com/image/61067dae-6479-4878-8a66-fec03f577abf",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: UNITALLA. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10280",
+    "nombre": "Vestido Flores Cinto Tela",
+    "categoria": "vestidos",
+    "precio": 750.0,
+    "precio_original": 938,
+    "tallas": [
+      "UNITALLA"
+    ],
+    "stock": 8.0,
+    "etiqueta": "Colección Gala",
+    "foto_url": "https://api.loyverse.com/image/3f0c2e3e-51a8-499a-883f-c5861dc377e0",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: UNITALLA. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10078",
+    "nombre": "BlusóN Cuello Alto",
+    "categoria": "vestidos",
+    "precio": 700.0,
+    "precio_original": 875,
+    "tallas": [
+      "UNITALLA"
+    ],
+    "stock": 95.0,
+    "etiqueta": "Colección Gala",
+    "foto_url": "https://api.loyverse.com/image/08347598-6b60-4d7f-88c5-860618f3ed51",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: UNITALLA. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10277",
+    "nombre": "Vestido Mesh Sin Manga",
+    "categoria": "vestidos",
+    "precio": 600.0,
+    "precio_original": 750,
+    "tallas": [
+      "UNITALLA"
+    ],
+    "stock": 2.0,
+    "etiqueta": "En Tienda",
+    "foto_url": "https://api.loyverse.com/image/55351bf9-df8e-463f-84a7-60cf56628f96",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: UNITALLA. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10030",
+    "nombre": "Short Lentejuela",
+    "categoria": "pantalones-faldas",
+    "precio": 600.0,
+    "precio_original": 750,
+    "tallas": [
+      "CH",
+      "M",
+      "G"
+    ],
+    "stock": 120.0,
+    "etiqueta": "En Tienda",
+    "foto_url": "https://api.loyverse.com/image/e76601ea-d9aa-4dfd-83b1-12fc177c5309",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: CH, M, G. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10094",
+    "nombre": "Falda Larga Vaca Abertura Al Frente",
+    "categoria": "pantalones-faldas",
+    "precio": 600.0,
+    "precio_original": 750,
+    "tallas": [
+      "UNITALLA"
+    ],
+    "stock": 14.0,
+    "etiqueta": "En Tienda",
+    "foto_url": "https://api.loyverse.com/image/c8695ba3-d43f-457a-901c-c4ead9d81091",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: UNITALLA. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10087",
+    "nombre": "Set 3 Piezas (Chaleco, Cinto Y Camisa)",
+    "categoria": "blusas",
+    "precio": 600.0,
+    "precio_original": 750,
+    "tallas": [
+      "UNITALLA"
+    ],
+    "stock": 21.0,
+    "etiqueta": "En Tienda",
+    "foto_url": "https://api.loyverse.com/image/523655f2-470e-4596-a1c7-410248879e20",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: UNITALLA. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10286",
+    "nombre": "Blazer Blanco",
+    "categoria": "blazers",
+    "precio": 550.0,
+    "precio_original": 688,
+    "tallas": [
+      "CH",
+      "XXL"
+    ],
+    "stock": 4.0,
+    "etiqueta": "Favorito Saltillo",
+    "foto_url": "https://api.loyverse.com/image/a5132ad0-72da-49f2-b99a-d4ea07a8fb36",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: CH, XXL. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10281",
+    "nombre": "Blusa Olanes Chifon",
+    "categoria": "blusas",
+    "precio": 550.0,
+    "precio_original": 688,
+    "tallas": [
+      "UNITALLA"
+    ],
+    "stock": 23.0,
+    "etiqueta": "En Tienda",
+    "foto_url": "https://api.loyverse.com/image/c4ac84ec-dd69-415c-ad79-0bf53f2c6f62",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: UNITALLA. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10188",
+    "nombre": "Blazer Negro",
+    "categoria": "blazers",
+    "precio": 550.0,
+    "precio_original": 688,
+    "tallas": [
+      "CH",
+      "G",
+      "XL",
+      "XXL"
+    ],
+    "stock": 8.0,
+    "etiqueta": "Favorito Saltillo",
+    "foto_url": "https://api.loyverse.com/image/41a8a312-30b6-4654-8415-7c269d15f412",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: CH, G, XL, XXL. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10111",
+    "nombre": "Panty Blusa Varias",
+    "categoria": "blusas",
+    "precio": 550.0,
+    "precio_original": 688,
+    "tallas": [
+      "UNITALLA"
+    ],
+    "stock": 56.0,
+    "etiqueta": "En Tienda",
+    "foto_url": "https://api.loyverse.com/image/d32af732-dba3-4ce3-abb4-b47b79bc2a76",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: UNITALLA. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10107",
+    "nombre": "SuéTer Tejido (Varios)",
+    "categoria": "abrigos-chalecos",
+    "precio": 550.0,
+    "precio_original": 688,
+    "tallas": [
+      "UNITALLA"
+    ],
+    "stock": 50.0,
+    "etiqueta": "En Tienda",
+    "foto_url": "https://api.loyverse.com/image/2fd586e1-2d35-47b6-a70f-e4c01d5eec60",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: UNITALLA. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10099",
+    "nombre": "Vestido Gamuza Manga Corta",
+    "categoria": "vestidos",
+    "precio": 550.0,
+    "precio_original": 688,
+    "tallas": [
+      "UNITALLA"
+    ],
+    "stock": 5.0,
+    "etiqueta": "En Tienda",
+    "foto_url": "https://api.loyverse.com/image/d8fdf16b-cd9e-4f34-8f69-c9c44842b307",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: UNITALLA. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10088",
+    "nombre": "Camisa Vaca",
+    "categoria": "blusas",
+    "precio": 550.0,
+    "precio_original": 688,
+    "tallas": [
+      "UNITALLA"
+    ],
+    "stock": 1.0,
+    "etiqueta": "En Tienda",
+    "foto_url": "https://api.loyverse.com/image/0480d241-9f1d-484b-b8a6-8ec0647c1381",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: UNITALLA. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10024",
+    "nombre": "Blazer Café",
+    "categoria": "blazers",
+    "precio": 550.0,
+    "precio_original": 688,
+    "tallas": [
+      "XL"
+    ],
+    "stock": 1.0,
+    "etiqueta": "Favorito Saltillo",
+    "foto_url": "https://api.loyverse.com/image/4c0ac81a-92f5-4ea1-8c91-6345ce4da588",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: XL. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10095",
+    "nombre": "Mini Falda Gamuza Con Mini Abertura Al Frente",
+    "categoria": "pantalones-faldas",
+    "precio": 500.0,
+    "precio_original": 625,
+    "tallas": [
+      "UNITALLA"
+    ],
+    "stock": 70.0,
+    "etiqueta": "En Tienda",
+    "foto_url": "https://api.loyverse.com/image/b2ba58e4-fc67-4df7-b8b7-122172e4198c",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: UNITALLA. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10069",
+    "nombre": "Falda Abertura De Lado",
+    "categoria": "pantalones-faldas",
+    "precio": 500.0,
+    "precio_original": 625,
+    "tallas": [
+      "CH",
+      "M"
+    ],
+    "stock": 30.0,
+    "etiqueta": "En Tienda",
+    "foto_url": "https://api.loyverse.com/image/a08a99a3-e151-4c97-8759-421552be5066",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: CH, M. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10049",
+    "nombre": "Pantalon Vinil Recto",
+    "categoria": "pantalones-faldas",
+    "precio": 500.0,
+    "precio_original": 625,
+    "tallas": [
+      "CH",
+      "M",
+      "G",
+      "XL",
+      "XXL"
+    ],
+    "stock": 137.0,
+    "etiqueta": "En Tienda",
+    "foto_url": "https://api.loyverse.com/image/1bf8ff31-e1e5-4f7b-8599-64bde52be9c9",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: CH, M, G, XL, XXL. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10170",
+    "nombre": "Falda / Short Vinil Negra",
+    "categoria": "pantalones-faldas",
+    "precio": 450.0,
+    "precio_original": 562,
+    "tallas": [
+      "CH",
+      "M",
+      "G",
+      "XL"
+    ],
+    "stock": 168.0,
+    "etiqueta": "En Tienda",
+    "foto_url": "https://api.loyverse.com/image/4a09ca11-bafd-40bc-acc6-98b8bb341bb6",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: CH, M, G, XL. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10046",
+    "nombre": "Cinto Gruesos",
+    "categoria": "accesorios",
+    "precio": 450.0,
+    "precio_original": 562,
+    "tallas": [
+      "UNITALLA"
+    ],
+    "stock": 21.0,
+    "etiqueta": "En Tienda",
+    "foto_url": "https://api.loyverse.com/image/7b9852cd-36c3-4085-a164-b6a815f25b28",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: UNITALLA. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10028",
+    "nombre": "PantalóN Vinil Entubado",
+    "categoria": "pantalones-faldas",
+    "precio": 450.0,
+    "precio_original": 562,
+    "tallas": [
+      "CH",
+      "M"
+    ],
+    "stock": 17.0,
+    "etiqueta": "En Tienda",
+    "foto_url": "https://api.loyverse.com/image/9a189059-c6df-4fe6-ade9-862170be5634",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: CH, M. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10010",
+    "nombre": "Blazer Rojo",
+    "categoria": "blazers",
+    "precio": 400.0,
+    "precio_original": 500,
+    "tallas": [
+      "CH",
+      "M",
+      "G",
+      "XL",
+      "XXL"
+    ],
+    "stock": 18.0,
+    "etiqueta": "Favorito Saltillo",
+    "foto_url": "https://api.loyverse.com/image/755b9ee0-cdee-4f13-821a-e3788ea4dfed",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: CH, M, G, XL, XXL. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  },
+  {
+    "codigo": "VB-10112",
+    "nombre": "Medias NiñA",
+    "categoria": "accesorios",
+    "precio": 250.0,
+    "precio_original": 312,
+    "tallas": [
+      "UNITALLA"
+    ],
+    "stock": 21.0,
+    "etiqueta": "Oferta",
+    "foto_url": "https://api.loyverse.com/image/af616241-70db-4d05-b111-6690ad54cdc3",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: UNITALLA. Consulta existencias en tiempo real por WhatsApp.",
+    "activo": "SI"
+  }
+]

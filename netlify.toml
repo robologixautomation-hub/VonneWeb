@@ -1,0 +1,13 @@
+[build]
+  publish = "."
+
+# Evitar que el navegador guarde en caché el inventario para que siempre esté al día
+[[headers]]
+  for = "/catalogo_data.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/catalogo_vonne.json"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"

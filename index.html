@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vonne Boutique Saltillo | Ropa para Mujer, Vestidos y Trajes de Baño</title>
+  <meta name="description" content="Vonne Boutique en Saltillo, Coahuila. Tienda de ropa para mujer, vestidos de fiesta, conjuntos en tendencia, trajes de baño y promociones. Ubicados en Plaza La Fragua, José María La Fragua, Col. Guanajuato." />
+  <meta name="keywords" content="boutique saltillo, trajes de baño saltillo, trajes de baño mujer saltillo, tiendas de ropa saltillo, vonne boutique saltillo, josé maría lafragua saltillo, vestidos fiesta saltillo, plaza la fragua" />
+  
+  <!-- Open Graph / Redes Sociales -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Vonne Boutique Saltillo | Tienda de Ropa y Trajes de Baño" />
+  <meta property="og:description" content="Moda femenina en Saltillo: Vestidos, trajes de baño, conjuntos y liquidaciones. Visítanos en Plaza La Fragua o aparta por WhatsApp." />
+  <meta property="og:image" content="https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=1200&q=80" />
+
+  <!-- Schema.org JSON-LD para Google Business Profile y SEO Local -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ClothingStore",
+    "name": "Vonne Boutique Saltillo",
+    "image": "https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=1200&q=80",
+    "telephone": "+528444551868",
+    "url": "https://www.facebook.com/VonneBoutique",
+    "hasMap": "https://maps.app.goo.gl/fAytGUAwGXgLNex69",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "José María La Fragua #2151A (Plaza La Fragua, esq. Blvd. Jesús Valdés Sánchez)",
+      "addressLocality": "Saltillo",
+      "addressRegion": "Coahuila de Zaragoza",
+      "postalCode": "25280",
+      "addressCountry": "MX"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": 25.4355213,
+      "longitude": -100.9796561
+    },
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        "opens": "12:00",
+        "closes": "20:00"
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": "Saturday",
+        "opens": "11:00",
+        "closes": "19:00"
+      }
+    ],
+    "priceRange": "$$"
+  }
+  </script>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#faf7f2',
+              100: '#f4efe8',
+              200: '#ebdcd0',
+              300: '#dfc299',
+              400: '#c5a880',
+              500: '#b59265',
+              600: '#8c7355',
+              700: '#68543d',
+              800: '#38342f',
+              900: '#1e1b18',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- FontAwesome Íconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Estilos Personalizados -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="bg-brand-50 text-stone-900 antialiased selection:bg-brand-300 selection:text-white pb-16 md:pb-0">
+
+  <!-- SDK oficial de Facebook para inserciones -->
+  <div id="fb-root"></div>
+  <script async defer crossorigin="anonymous" src="https://connect.facebook.net/es_LA/sdk.js#xfbml=1&version=v20.0" nonce="VonneBoutiqueSdk"></script>
+
+  <!-- =========================================================================
+       1. BARRA DE ANUNCIO SUPERIOR
+       ========================================================================= -->
+  <div class="bg-brand-900 text-stone-200 text-xs py-2 px-4 border-b border-brand-800">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
+      <div class="flex items-center gap-2">
+        <span class="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+        <span class="font-medium">Novedades en Plaza La Fragua • Vestidos, Trajes de Baño y Conjuntos</span>
+      </div>
+      <div class="flex items-center gap-4 text-[11px] opacity-90">
+        <span><i class="fas fa-map-marker-alt text-amber-300 mr-1"></i> José María La Fragua, Saltillo</span>
+        <a href="https://maps.app.goo.gl/fAytGUAwGXgLNex69" target="_blank" class="hover:text-amber-300 underline transition">
+          Ver en Google Maps
+        </a>
+        <a href="https://www.facebook.com/VonneBoutique" target="_blank" class="hover:text-amber-300 transition flex items-center gap-1">
+          <i class="fab fa-facebook"></i> Facebook Oficial
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       2. BARRA DE NAVEGACIÓN (STICKY)
+       ========================================================================= -->
+  <header class="sticky top-0 z-40 glass-nav transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        
+        <!-- Logotipo de la marca -->
+        <a href="#inicio" class="flex flex-col items-center sm:items-start group">
+          <span class="font-display-luxury text-2xl sm:text-3xl font-bold tracking-[0.2em] text-brand-900 uppercase group-hover:text-brand-600 transition">
+            VONNE
+          </span>
+          <span class="text-[9px] uppercase tracking-[0.35em] text-brand-600 font-semibold -mt-1">
+            Boutique • Plaza La Fragua
+          </span>
+        </a>
+
+        <!-- Menú de escritorio -->
+        <nav class="hidden md:flex items-center gap-6 lg:gap-7 text-sm tracking-wide font-medium text-stone-700">
+          <a href="#catalogo" class="hover:text-brand-700 transition">Colección</a>
+          <a href="#facebook-feed-section" class="hover:text-blue-700 text-blue-700 transition flex items-center gap-1">
+            <i class="fab fa-facebook-square"></i>
+            <span>Feed Facebook</span>
+          </a>
+          <a href="#promociones" class="hover:text-brand-700 transition flex items-center gap-1.5">
+            <span>Liquidación</span>
+            <span class="bg-red-100 text-red-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full">Desde $99</span>
+          </a>
+          <a href="#trajes-bano-section" class="hover:text-brand-700 transition text-amber-800 font-semibold flex items-center gap-1">
+            <span>👙 Trajes de Baño</span>
+          </a>
+          <a href="#nosotros" class="hover:text-brand-700 transition">Sobre Vonne</a>
+          <a href="#ubicacion" class="hover:text-brand-700 transition">Ubicación</a>
+          <a href="#faq" class="hover:text-brand-700 transition">Preguntas</a>
+        </nav>
+
+        <!-- Botones de Acción Derecha -->
+        <div class="flex items-center gap-3">
+          
+          <!-- Botón Administrar Catálogo Google Drive -->
+          <button 
+            type="button"
+            onclick="openDriveSyncModal()"
+            title="Conectar o editar catálogo desde Google Drive / Google Sheets"
+            class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-300 text-amber-900 bg-amber-50 hover:bg-amber-100 transition text-xs font-semibold"
+          >
+            <i class="fab fa-google-drive text-amber-700"></i>
+            <span>Google Drive</span>
+          </button>
+
+          <!-- Enlace a Facebook Oficial -->
+          <a 
+            href="https://www.facebook.com/VonneBoutique" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            title="Visitar Facebook de Vonne Boutique"
+            class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-blue-200 text-blue-700 bg-blue-50/70 hover:bg-blue-600 hover:text-white transition text-xs font-semibold"
+          >
+            <i class="fab fa-facebook-f text-sm"></i>
+            <span>Facebook</span>
+          </a>
+
+          <!-- Botón de Bolsa de Apartado -->
+          <button 
+            type="button"
+            class="open-bag-btn relative p-2.5 rounded-xl bg-stone-900 text-white hover:bg-stone-800 transition flex items-center gap-2 shadow-sm"
+            title="Ver tu bolsa de prendas"
+          >
+            <i class="fas fa-shopping-bag text-base"></i>
+            <span class="hidden sm:inline text-xs font-medium">Bolsa</span>
+            <span class="bag-count-badge hidden absolute -top-1.5 -right-1.5 bg-amber-500 text-stone-900 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">
+              0
+            </span>
+          </button>
+
+          <!-- Botón Hamburguesa Móvil -->
+          <button 
+            type="button" 
+            id="mobile-menu-btn"
+            class="md:hidden p-2.5 rounded-xl text-stone-700 hover:bg-stone-100 transition"
+            aria-label="Abrir menú"
+          >
+            <i class="fas fa-bars text-lg"></i>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Menú desplegable Móvil -->
+    <div id="mobile-menu" class="hidden md:hidden border-t border-brand-200 bg-white px-6 py-5 shadow-lg space-y-4">
+      <div class="store-live-status mb-3"></div>
+      <a href="#catalogo" class="block text-base font-medium text-stone-800 py-1 hover:text-brand-600 mobile-nav-link">Catálogo de Prendas</a>
+      <a href="#facebook-feed-section" class="block text-base font-bold text-blue-700 py-1 hover:text-blue-800 mobile-nav-link">Feed en Vivo de Facebook</a>
+      <a href="#trajes-bano-section" class="block text-base font-bold text-amber-800 py-1 hover:text-amber-900 mobile-nav-link">👙 Trajes de Baño Saltillo</a>
+      <a href="#promociones" class="block text-base font-medium text-red-600 py-1 hover:text-red-700 mobile-nav-link">Liquidación Facebook (Desde $99)</a>
+      <a href="#nosotros" class="block text-base font-medium text-stone-800 py-1 hover:text-brand-600 mobile-nav-link">Sobre Nosotros</a>
+      <a href="#ubicacion" class="block text-base font-medium text-stone-800 py-1 hover:text-brand-600 mobile-nav-link">Ubicación en Plaza La Fragua</a>
+      <a href="#faq" class="block text-base font-medium text-stone-800 py-1 hover:text-brand-600 mobile-nav-link">Preguntas Frecuentes</a>
+      
+      <div class="pt-3 border-t border-stone-100 flex flex-col gap-2.5">
+        <button 
+          type="button" 
+          onclick="openDriveSyncModal(); document.getElementById('mobile-menu').classList.add('hidden');"
+          class="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-amber-50 text-amber-900 border border-amber-300 font-medium text-sm"
+        >
+          <i class="fab fa-google-drive text-amber-700"></i> Conectar Google Drive
+        </button>
+        <a 
+          href="https://wa.me/528444551868" 
+          target="_blank" 
+          class="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-emerald-600 text-white font-medium text-sm"
+        >
+          <i class="fab fa-whatsapp"></i> Contactar por WhatsApp
+        </a>
+        <a 
+          href="https://maps.app.goo.gl/fAytGUAwGXgLNex69" 
+          target="_blank" 
+          class="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-stone-100 text-stone-800 font-medium text-sm"
+        >
+          <i class="fas fa-map-marked-alt text-amber-700"></i> Abrir en Google Maps
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       3. HERO SECTION (EDITORIAL BOUTIQUE)
+       ========================================================================= -->
+  <section id="inicio" class="relative overflow-hidden pt-8 pb-16 lg:pt-14 lg:pb-24 bg-gradient-champagne border-b border-brand-200/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+        
+        <!-- Columna de texto -->
+        <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+          
+          <!-- Estado en Vivo de la Tienda -->
+          <div class="store-live-status inline-block"></div>
+
+          <h1 class="font-display-luxury text-4xl sm:text-5xl lg:text-6xl font-bold text-brand-900 leading-[1.12] tracking-tight">
+            La boutique de moda y trajes de baño favorita en <span class="italic font-normal text-brand-600">Saltillo</span>.
+          </h1>
+
+          <p class="text-base sm:text-lg text-stone-600 max-w-xl mx-auto lg:mx-0 leading-relaxed font-light">
+            Encuentra vestidos de fiesta, conjuntos en tendencia, la más amplia variedad en <strong>trajes de baño para mujer</strong> y liquidaciones exclusivas de Facebook. Ubicados en <strong>José María La Fragua, Col. Guanajuato (Plaza La Fragua)</strong>.
+          </p>
+
+          <!-- Acciones Principales -->
+          <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-2">
+            <a 
+              href="#catalogo" 
+              class="w-full sm:w-auto px-8 py-4 rounded-2xl btn-boutique-primary font-medium text-sm tracking-wider uppercase text-center shadow-lg flex items-center justify-center gap-2"
+            >
+              <span>Ver Colección</span>
+              <i class="fas fa-arrow-right text-xs"></i>
+            </a>
+
+            <a 
+              href="#facebook-feed-section" 
+              class="w-full sm:w-auto px-7 py-4 rounded-2xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-800 font-medium text-sm tracking-wide text-center transition flex items-center justify-center gap-2 shadow-sm"
+            >
+              <i class="fab fa-facebook text-blue-600"></i>
+              <span>Feed de Facebook</span>
+            </a>
+
+            <a 
+              href="https://maps.app.goo.gl/fAytGUAwGXgLNex69" 
+              target="_blank"
+              class="w-full sm:w-auto px-7 py-4 rounded-2xl bg-white hover:bg-stone-50 border border-brand-200 text-stone-800 font-medium text-sm tracking-wide text-center transition flex items-center justify-center gap-2 shadow-sm"
+            >
+              <i class="fas fa-location-dot text-amber-700"></i>
+              <span>Cómo Llegar (Maps)</span>
+            </a>
+          </div>
+
+          <!-- Métricas y Sellos de Confianza -->
+          <div class="pt-6 border-t border-brand-200/80 grid grid-cols-3 gap-4 max-w-lg mx-auto lg:mx-0 text-center lg:text-left">
+            <div>
+              <p class="font-display-luxury text-2xl sm:text-3xl font-bold text-brand-900">+12,000</p>
+              <p class="text-xs text-stone-500">Visitas en Saltillo</p>
+            </div>
+            <div>
+              <p class="font-display-luxury text-2xl sm:text-3xl font-bold text-brand-900">CH a XL</p>
+              <p class="text-xs text-stone-500">Tallas en Tienda</p>
+            </div>
+            <div>
+              <p class="font-display-luxury text-2xl sm:text-3xl font-bold text-brand-900">Apartado</p>
+              <p class="text-xs text-stone-500">Sistema Flexible</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Columna de Imágenes Estilo Galería Editorial -->
+        <div class="lg:col-span-5 relative">
+          <div class="relative mx-auto max-w-sm lg:max-w-none">
+            
+            <!-- Marco Principal -->
+            <div class="aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl border-4 border-white">
+              <img 
+                src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1000&q=80" 
+                alt="Boutique de Ropa Saltillo"
+                class="w-full h-full object-cover"
+              />
+            </div>
+
+            <!-- Tarjeta Flotante: Ubicación Plaza La Fragua -->
+            <div class="absolute -bottom-6 -left-6 bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-brand-200/80 max-w-[260px] hidden sm:block">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+                  <i class="fas fa-store text-lg"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-stone-900">Plaza La Fragua</h4>
+                  <p class="text-[11px] text-stone-500 leading-tight">José María La Fragua #2151A, Col. Guanajuato, Saltillo</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tarjeta Flotante: Facebook Oficial -->
+            <a 
+              href="https://www.facebook.com/VonneBoutique" 
+              target="_blank"
+              class="absolute -top-4 -right-4 bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-2xl shadow-lg border border-brand-200/80 flex items-center gap-2 hover:scale-105 transition"
+            >
+              <i class="fab fa-facebook text-blue-600 text-lg"></i>
+              <span class="text-xs font-semibold text-stone-800">@VonneBoutique</span>
+            </a>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       4. BARRA DE BENEFICIOS Y SERVICIOS
+       ========================================================================= -->
+  <section class="bg-white border-b border-brand-200 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+        
+        <div class="flex flex-col items-center">
+          <div class="w-12 h-12 rounded-2xl bg-brand-50 text-brand-700 flex items-center justify-center mb-3">
+            <i class="fas fa-store text-lg"></i>
+          </div>
+          <h4 class="text-sm font-semibold text-stone-900">Plaza La Fragua</h4>
+          <p class="text-xs text-stone-500 mt-1">Ubicación céntrica con estacionamiento</p>
+        </div>
+
+        <div class="flex flex-col items-center">
+          <div class="w-12 h-12 rounded-2xl bg-brand-50 text-brand-700 flex items-center justify-center mb-3">
+            <i class="fas fa-water text-lg"></i>
+          </div>
+          <h4 class="text-sm font-semibold text-stone-900">Trajes de Baño</h4>
+          <p class="text-xs text-stone-500 mt-1">Línea de playa, bikinis y enterizos todo el año</p>
+        </div>
+
+        <div class="flex flex-col items-center">
+          <div class="w-12 h-12 rounded-2xl bg-brand-50 text-brand-700 flex items-center justify-center mb-3">
+            <i class="fas fa-hand-holding-heart text-lg"></i>
+          </div>
+          <h4 class="text-sm font-semibold text-stone-900">Sistema de Apartado</h4>
+          <p class="text-xs text-stone-500 mt-1">Aparta tu outfit y liquídalo cómodamente</p>
+        </div>
+
+        <div class="flex flex-col items-center">
+          <div class="w-12 h-12 rounded-2xl bg-brand-50 text-brand-700 flex items-center justify-center mb-3">
+            <i class="fas fa-sync text-lg"></i>
+          </div>
+          <h4 class="text-sm font-semibold text-stone-900">Sincronización en Vivo</h4>
+          <p class="text-xs text-stone-500 mt-1">Catálogo actualizado desde Google Drive</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       5. CATÁLOGO INTERACTIVO DE PRENDAS (SINCRONIZADO CON GOOGLE DRIVE)
+       ========================================================================= -->
+  <section id="catalogo" class="py-16 sm:py-24 bg-brand-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Encabezado de Sección -->
+      <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+        <div>
+          <div class="flex items-center gap-3 mb-1">
+            <span class="text-xs uppercase tracking-[0.25em] text-brand-600 font-bold">
+              Boutique Saltillo • Catálogo 2026
+            </span>
+            <!-- Indicador de Sincronización con Google Drive -->
+            <div id="drive-sync-status"></div>
+          </div>
+          <h2 class="font-display-luxury text-3xl sm:text-4xl font-bold text-stone-900">
+            Prendas en Tendencia & Ofertas
+          </h2>
+          <p class="text-stone-500 text-sm mt-1">
+            Revisa tallas disponibles y aparta directo a WhatsApp antes de acudir a tienda.
+          </p>
+        </div>
+
+        <!-- Buscador y Botón de Ajustes de Drive -->
+        <div class="w-full md:w-80 flex gap-2">
+          <div class="relative flex-1">
+            <input 
+              type="text" 
+              id="catalog-search"
+              placeholder="Buscar trajes de baño, vestidos..." 
+              class="w-full pl-10 pr-4 py-2.5 bg-white border border-stone-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 text-stone-800 placeholder:text-stone-400 shadow-sm"
+            />
+            <i class="fas fa-search absolute left-3.5 top-3.5 text-stone-400 text-xs"></i>
+          </div>
+          <button 
+            type="button" 
+            onclick="openDriveSyncModal()"
+            title="Sincronizar con Google Drive / Sheets"
+            class="p-2.5 rounded-2xl bg-white border border-stone-200 text-stone-600 hover:text-amber-800 hover:border-amber-400 transition shadow-sm"
+          >
+            <i class="fab fa-google-drive text-base"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filtros por Categoría (Tabs acordes al Inventario Real de Loyverse POS) -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-4 mb-8 scrollbar-none">
+        <button type="button" class="category-tab-btn px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition bg-stone-900 text-white shadow-sm" data-category="todos">
+          Todas las prendas
+        </button>
+        <button type="button" class="category-tab-btn px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200/80 font-bold" data-category="blazers">
+          🧥 Blazers ($550)
+        </button>
+        <button type="button" class="category-tab-btn px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition bg-stone-100 text-stone-600 hover:bg-stone-200" data-category="vestidos">
+          👗 Vestidos
+        </button>
+        <button type="button" class="category-tab-btn px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition bg-stone-100 text-stone-600 hover:bg-stone-200" data-category="conjuntos">
+          ✨ Conjuntos
+        </button>
+        <button type="button" class="category-tab-btn px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition bg-stone-100 text-stone-600 hover:bg-stone-200" data-category="blusas">
+          👚 Blusas & Tops
+        </button>
+        <button type="button" class="category-tab-btn px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition bg-stone-100 text-stone-600 hover:bg-stone-200" data-category="pantalones-faldas">
+          👖 Pantalones & Faldas
+        </button>
+        <button type="button" class="category-tab-btn px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition bg-stone-100 text-stone-600 hover:bg-stone-200" data-category="fajas">
+          ⏳ Fajas Colombianas
+        </button>
+        <button type="button" class="category-tab-btn px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition bg-cyan-50 text-cyan-900 hover:bg-cyan-100 border border-cyan-200/80 font-medium" data-category="trajes-bano">
+          👙 Trajes de Baño & Playa
+        </button>
+        <button type="button" class="category-tab-btn px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition bg-stone-100 text-stone-600 hover:bg-stone-200" data-category="abrigos-chalecos">
+          🧥 Capas & Chalecos
+        </button>
+        <button type="button" class="category-tab-btn px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition bg-red-50 text-red-700 hover:bg-red-100 border border-red-200/80 font-bold" data-category="promociones">
+          🔥 Ofertas & Outlet
+        </button>
+      </div>
+
+      <!-- Barra de Estado del Catálogo -->
+      <div class="flex items-center justify-between text-xs text-stone-500 mb-6">
+        <span id="products-count" class="font-medium text-stone-700">Cargando prendas...</span>
+        <span>Precios en Moneda Nacional (MXN)</span>
+      </div>
+
+      <!-- Grid Dinámico de Productos (Inyectado por app.js desde Google Drive) -->
+      <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <!-- Los productos se renderizan dinámicamente -->
+      </div>
+
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       6. SECCIÓN: FEED DE FACEBOOK INSERTADO
+       ========================================================================= -->
+  <section id="facebook-feed-section" class="py-16 sm:py-20 bg-white border-y border-brand-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-12 space-y-3">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold">
+          <i class="fab fa-facebook text-sm"></i>
+          <span>Publicaciones en Tiempo Real</span>
+        </div>
+        <h2 class="font-display-luxury text-3xl sm:text-4xl font-bold text-stone-900">
+          Feed Oficial de Facebook de Vonne Boutique
+        </h2>
+        <p class="text-stone-600 text-sm sm:text-base leading-relaxed">
+          Consulta directamente las publicaciones, fotos de nuevas prendas, videos y promociones relámpago que compartimos todos los días en nuestra página oficial de Facebook.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Columna Izquierda: Plugin Oficial de Facebook Embed -->
+        <div class="lg:col-span-7 bg-brand-50 rounded-3xl p-4 sm:p-6 border border-brand-200 shadow-sm flex flex-col items-center">
+          
+          <div class="w-full flex items-center justify-between pb-4 border-b border-brand-200 mb-4 text-xs text-stone-600">
+            <span class="font-semibold flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+              Página Oficial: @VonneBoutique
+            </span>
+            <a 
+              href="https://www.facebook.com/VonneBoutique" 
+              target="_blank" 
+              class="text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1"
+            >
+              <span>Abrir en Facebook</span>
+              <i class="fas fa-external-link-alt text-[10px]"></i>
+            </a>
+          </div>
+
+          <div class="w-full overflow-hidden rounded-2xl bg-white border border-stone-200 shadow-inner flex justify-center py-2">
+            <div 
+              class="fb-page w-full flex justify-center" 
+              data-href="https://www.facebook.com/VonneBoutique" 
+              data-tabs="timeline,events" 
+              data-width="500" 
+              data-height="620" 
+              data-small-header="false" 
+              data-adapt-container-width="true" 
+              data-hide-cover="false" 
+              data-show-facepile="true"
+            >
+              <blockquote cite="https://www.facebook.com/VonneBoutique" class="fb-xfbml-parse-ignore w-full">
+                <iframe 
+                  src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2FVonneBoutique&tabs=timeline&width=500&height=620&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true&appId" 
+                  width="100%" 
+                  height="620" 
+                  style="border:none;overflow:hidden;min-height:580px;" 
+                  scrolling="yes" 
+                  frameborder="0" 
+                  allowfullscreen="true" 
+                  allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                  title="Feed de Facebook Vonne Boutique Saltillo"
+                ></iframe>
+              </blockquote>
+            </div>
+          </div>
+
+          <p class="text-[11px] text-stone-400 mt-3 text-center">
+            * Interactúa, dale 'Me Gusta' o comenta directamente en las publicaciones sin salir de nuestra página web.
+          </p>
+
+        </div>
+
+        <!-- Columna Derecha: Accesos rápidos y WhatsApp -->
+        <div class="lg:col-span-5 space-y-5">
+          
+          <div class="bg-gradient-to-br from-blue-50 to-indigo-50/50 rounded-3xl p-6 border border-blue-100 shadow-sm">
+            <h3 class="font-display-luxury text-xl font-bold text-stone-900 mb-2">
+              ¿Viste algo en nuestro Facebook que te encantó?
+            </h3>
+            <p class="text-stone-600 text-xs sm:text-sm leading-relaxed mb-4">
+              Cada semana recibimos mercancía nueva. Si viste una foto o video de un vestido, conjunto o traje de baño en Facebook, tómale captura y te decimos existencias en Plaza La Fragua al instante.
+            </p>
+            <a 
+              href="https://wa.me/528444551868?text=Hola%20Vonne%20Boutique!%20Vi%20una%20publicaci%C3%B3n%20reciente%20en%20su%20Facebook%20y%20quisiera%20consultar%20talla%20y%20apartado." 
+              target="_blank"
+              class="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold tracking-wider uppercase transition flex items-center justify-center gap-2 shadow"
+            >
+              <i class="fab fa-whatsapp text-base"></i>
+              <span>Consultar por WhatsApp</span>
+            </a>
+          </div>
+
+          <div class="bg-white rounded-3xl p-6 border border-brand-200 shadow-sm space-y-4">
+            <h4 class="text-xs font-bold uppercase tracking-widest text-stone-500">
+              Tendencias Recientes en Facebook
+            </h4>
+
+            <div class="space-y-3">
+              <a 
+                href="#catalogo" 
+                onclick="document.querySelector('[data-category=promociones]').click();" 
+                class="flex items-center justify-between p-3 rounded-2xl bg-brand-50 hover:bg-brand-100 transition text-xs font-semibold text-stone-800"
+              >
+                <div class="flex items-center gap-2.5">
+                  <span class="text-base">🔥</span>
+                  <span>Liquidaciones de Conjuntos a $299</span>
+                </div>
+                <i class="fas fa-chevron-right text-stone-400 text-[10px]"></i>
+              </a>
+
+              <a 
+                href="#catalogo" 
+                onclick="document.querySelector('[data-category=vestidos]').click();" 
+                class="flex items-center justify-between p-3 rounded-2xl bg-brand-50 hover:bg-brand-100 transition text-xs font-semibold text-stone-800"
+              >
+                <div class="flex items-center gap-2.5">
+                  <span class="text-base">👗</span>
+                  <span>Vestidos de Temporada con Cinto ($349)</span>
+                </div>
+                <i class="fas fa-chevron-right text-stone-400 text-[10px]"></i>
+              </a>
+
+              <a 
+                href="#catalogo" 
+                onclick="document.querySelector('[data-category=trajes-bano]').click();" 
+                class="flex items-center justify-between p-3 rounded-2xl bg-brand-50 hover:bg-brand-100 transition text-xs font-semibold text-stone-800"
+              >
+                <div class="flex items-center gap-2.5">
+                  <span class="text-base">👙</span>
+                  <span>Trajes de Baño & Ropa de Playa</span>
+                </div>
+                <i class="fas fa-chevron-right text-stone-400 text-[10px]"></i>
+              </a>
+            </div>
+
+            <div class="pt-3 border-t border-stone-100 text-center">
+              <a 
+                href="https://www.facebook.com/VonneBoutique" 
+                target="_blank"
+                class="text-xs text-blue-600 font-bold hover:underline inline-flex items-center gap-1.5"
+              >
+                <i class="fab fa-facebook-f"></i>
+                <span>Seguir a Vonne Boutique en Facebook</span>
+              </a>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       7. DESTACADO: TRAJES DE BAÑO & PLAYA
+       ========================================================================= -->
+  <section id="trajes-bano-section" class="py-16 bg-amber-50/60 border-b border-amber-200/70">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col lg:flex-row items-center justify-between gap-8">
+        <div class="space-y-3 text-center lg:text-left">
+          <span class="px-3 py-1 rounded-full bg-amber-800 text-white text-xs font-bold uppercase tracking-wider inline-block">
+            👙 Colección Más Buscada en Saltillo
+          </span>
+          <h2 class="font-display-luxury text-3xl sm:text-4xl font-bold text-stone-900">
+            Trajes de Baño & Ropa de Playa para Mujer
+          </h2>
+          <p class="text-stone-600 max-w-xl text-sm sm:text-base leading-relaxed">
+            Descubre nuestra línea completa de trajes de baño enterizos moldeadores, bikinis de tiro alto, kimonos de playa y accesorios. Diseñados para estilizar y brindar máxima comodidad.
+          </p>
+          <div class="pt-2">
+            <button 
+              onclick="document.querySelector('[data-category=trajes-bano]').click(); document.getElementById('catalogo').scrollIntoView({behavior: 'smooth'});"
+              class="px-7 py-3.5 rounded-2xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold tracking-wider uppercase transition shadow"
+            >
+              Ver Trajes de Baño Disponibles
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 w-full sm:w-auto shrink-0">
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-amber-200 text-center">
+            <span class="text-2xl mb-1 block">👙</span>
+            <span class="text-sm font-bold text-stone-900 block">Enterizos & Bikinis</span>
+            <span class="text-xs text-stone-500 mt-0.5 block">Tallas CH a XL</span>
+          </div>
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-amber-200 text-center">
+            <span class="text-2xl mb-1 block">☀️</span>
+            <span class="text-sm font-bold text-stone-900 block">Salidas & Kimonos</span>
+            <span class="text-xs text-stone-500 mt-0.5 block">Desde $290 MXN</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       8. SECCIÓN DE PROMOCIONES FACEBOOK
+       ========================================================================= -->
+  <section id="promociones" class="py-16 bg-white border-b border-brand-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="bg-red-50 rounded-3xl p-8 sm:p-12 border border-red-100 flex flex-col lg:flex-row items-center justify-between gap-8">
+        
+        <div class="space-y-4 text-center lg:text-left">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-600 text-white text-xs font-bold uppercase tracking-wider">
+            <i class="fas fa-fire"></i> Ofertas Especiales de Facebook
+          </div>
+          <h2 class="font-display-luxury text-3xl sm:text-4xl font-bold text-stone-900">
+            ¡Liquidaciones y remates en tienda física!
+          </h2>
+          <p class="text-stone-600 max-w-2xl text-sm sm:text-base leading-relaxed">
+            Aprovecha los descuentos publicados en nuestro muro: <strong>conjuntos falda y blusa de $950 a $299 MXN</strong>, <strong>vestidos de temporada con cinto de $750 a $349 MXN</strong>, <strong>pantalones desde $99 MXN</strong> y la promo de <strong>2 blazers por $849 MXN</strong>.
+          </p>
+          <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
+            <a 
+              href="https://www.facebook.com/VonneBoutique" 
+              target="_blank"
+              class="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold tracking-wider uppercase transition flex items-center gap-2 shadow"
+            >
+              <i class="fab fa-facebook-f"></i> Ver en Facebook
+            </a>
+            <button 
+              onclick="document.querySelector('[data-category=promociones]').click(); document.getElementById('catalogo').scrollIntoView({behavior: 'smooth'});"
+              class="px-6 py-3 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold tracking-wider uppercase transition"
+            >
+              Ver Prendas en Rebaja
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 w-full sm:w-auto shrink-0">
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-red-100 text-center">
+            <span class="text-xs text-stone-400 font-medium uppercase tracking-wider block">Conjunto Falda & Blusa</span>
+            <span class="text-3xl font-extrabold text-red-600 font-display-luxury">$299</span>
+            <span class="text-xs text-stone-400 line-through block mt-0.5">Antes $950</span>
+          </div>
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-red-100 text-center">
+            <span class="text-xs text-stone-400 font-medium uppercase tracking-wider block">Pantalones Outlet</span>
+            <span class="text-3xl font-extrabold text-stone-900 font-display-luxury">$99</span>
+            <span class="text-xs text-stone-500 block mt-0.5">Desde $99 MXN</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       9. SECCIÓN SOBRE VONNE BOUTIQUE
+       ========================================================================= -->
+  <section id="nosotros" class="py-20 bg-brand-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        
+        <div class="lg:col-span-5 space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="aspect-[4/5] rounded-2xl overflow-hidden shadow-md">
+              <img 
+                src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=600&q=80" 
+                alt="Tienda de ropa mujer Saltillo" 
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <div class="aspect-[4/5] rounded-2xl overflow-hidden shadow-md mt-6">
+              <img 
+                src="https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&w=600&q=80" 
+                alt="Boutique en Saltillo Coahuila" 
+                class="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-7 space-y-6">
+          <span class="text-xs uppercase tracking-[0.25em] text-brand-600 font-bold block">
+            Nuestra Esencia
+          </span>
+          <h2 class="font-display-luxury text-3xl sm:text-4xl font-bold text-stone-900 leading-snug">
+            Vonne Boutique: Moda, elegancia y atención cálida en Saltillo.
+          </h2>
+          <p class="text-stone-600 text-base leading-relaxed">
+            Más de 12,000 personas al mes descubren nuestras prendas y nos visitan en <strong>José María La Fragua (Plaza La Fragua)</strong>. Nos especializamos en vestidos de fiesta para eventos especiales, atuendos casuales modernos, calzado, accesorios y una línea completa de trajes de baño.
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+            <div class="p-4 rounded-2xl bg-white border border-brand-200">
+              <div class="text-amber-700 font-bold text-lg mb-1 flex items-center gap-2">
+                <i class="fas fa-check-circle text-sm"></i> Sistema de Apartado
+              </div>
+              <p class="text-xs text-stone-500">
+                Aparta tu prenda favorita desde hoy y liquídala a tu propio ritmo antes de tu evento.
+              </p>
+            </div>
+            <div class="p-4 rounded-2xl bg-white border border-brand-200">
+              <div class="text-amber-700 font-bold text-lg mb-1 flex items-center gap-2">
+                <i class="fas fa-heart text-sm"></i> Tallas Reales (CH a XL)
+              </div>
+              <p class="text-xs text-stone-500">
+                Prendas con cortes favorecedores para que te sientas segura y hermosa.
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       10. SECCIÓN DE UBICACIÓN & HORARIOS (GOOGLE MAPS)
+       ========================================================================= -->
+  <section id="ubicacion" class="py-20 bg-white border-t border-brand-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-2xl mx-auto mb-14 space-y-3">
+        <span class="text-xs uppercase tracking-[0.25em] text-brand-600 font-bold block">
+          Visítanos en Saltillo
+        </span>
+        <h2 class="font-display-luxury text-3xl sm:text-4xl font-bold text-stone-900">
+          Ubicación en Plaza La Fragua
+        </h2>
+        <p class="text-stone-500 text-sm">
+          José María La Fragua #2151A, Colonia Guanajuato, Saltillo, Coahuila de Zaragoza.
+        </p>
+        <div class="store-live-status inline-block pt-2"></div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        
+        <div class="lg:col-span-5 bg-brand-50 rounded-3xl p-6 sm:p-8 border border-brand-200 flex flex-col justify-between space-y-6">
+          
+          <div class="space-y-6">
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-2xl bg-white text-amber-700 flex items-center justify-center shrink-0 shadow-sm border border-brand-200">
+                <i class="fas fa-location-dot text-xl"></i>
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-stone-900 uppercase tracking-wider">Dirección Oficial</h4>
+                <p class="text-stone-900 text-base mt-1 font-bold">
+                  Plaza La Fragua
+                </p>
+                <p class="text-stone-700 text-sm mt-0.5 font-medium leading-relaxed">
+                  José María La Fragua #2151A<br />
+                  (esq. con Blvd. Jesús Valdés Sánchez)
+                </p>
+                <p class="text-stone-500 text-xs mt-1">
+                  Colonia Guanajuato, C.P. 25280<br />
+                  Saltillo, Coahuila de Zaragoza, México.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-2xl bg-white text-amber-700 flex items-center justify-center shrink-0 shadow-sm border border-brand-200">
+                <i class="fas fa-clock text-xl"></i>
+              </div>
+              <div class="flex-1">
+                <h4 class="text-sm font-bold text-stone-900 uppercase tracking-wider">Horarios de Atención</h4>
+                <div class="mt-2 space-y-1.5 text-xs text-stone-600">
+                  <div class="flex justify-between py-1 border-b border-stone-200/60">
+                    <span class="font-medium text-stone-800">Lunes a Viernes:</span>
+                    <span>12:00 PM – 8:00 PM</span>
+                  </div>
+                  <div class="flex justify-between py-1 border-b border-stone-200/60">
+                    <span class="font-medium text-stone-800">Sábados:</span>
+                    <span>11:00 AM – 7:00 PM</span>
+                  </div>
+                  <div class="flex justify-between py-1">
+                    <span class="font-medium text-stone-800">Domingos:</span>
+                    <span class="text-red-500 font-semibold">Cerrado</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-2xl bg-white text-amber-700 flex items-center justify-center shrink-0 shadow-sm border border-brand-200">
+                <i class="fas fa-phone text-xl"></i>
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-stone-900 uppercase tracking-wider">Contacto Telefónico</h4>
+                <p class="text-stone-800 text-sm font-semibold mt-1">
+                  +52 (844) 455-1868
+                </p>
+                <p class="text-stone-500 text-xs mt-0.5">
+                  Llamadas directas y mensajes de WhatsApp.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-3 pt-4 border-t border-brand-200">
+            <a 
+              href="https://maps.app.goo.gl/fAytGUAwGXgLNex69" 
+              target="_blank"
+              class="w-full py-3.5 px-4 bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold tracking-wider uppercase rounded-2xl transition text-center flex items-center justify-center gap-2 shadow"
+            >
+              <i class="fas fa-directions text-amber-400"></i>
+              <span>Abrir en Google Maps</span>
+            </a>
+
+            <a 
+              href="https://www.facebook.com/VonneBoutique" 
+              target="_blank"
+              class="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold tracking-wider uppercase rounded-2xl transition text-center flex items-center justify-center gap-2 shadow"
+            >
+              <i class="fab fa-facebook-f"></i>
+              <span>Visitar Facebook Oficial</span>
+            </a>
+          </div>
+
+        </div>
+
+        <div class="lg:col-span-7 bg-stone-100 rounded-3xl overflow-hidden border border-brand-200 relative min-h-[420px] shadow-sm flex flex-col">
+          <iframe 
+            src="https://maps.google.com/maps?q=25.4355213,-100.9796561&hl=es&z=18&output=embed" 
+            class="w-full h-full min-h-[360px] flex-1 border-0"
+            allowfullscreen="" 
+            loading="lazy" 
+            referrerpolicy="no-referrer-when-downgrade"
+            title="Ubicación Vonne Boutique en Plaza La Fragua Saltillo"
+          ></iframe>
+
+          <div class="bg-white p-4 border-t border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-2 text-stone-700">
+              <i class="fas fa-map-pin text-red-600 text-sm"></i>
+              <span><strong>Plaza La Fragua:</strong> José María La Fragua #2151A, Saltillo</span>
+            </div>
+            <a 
+              href="https://maps.app.goo.gl/fAytGUAwGXgLNex69" 
+              target="_blank"
+              class="text-amber-800 font-bold hover:underline flex items-center gap-1 shrink-0"
+            >
+              <span>Abrir Ruta en Maps</span>
+              <i class="fas fa-external-link-alt text-[10px]"></i>
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       11. PREGUNTAS FRECUENTES (FAQ ACCORDION)
+       ========================================================================= -->
+  <section id="faq" class="py-16 bg-white border-t border-brand-200">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center mb-12">
+        <span class="text-xs uppercase tracking-[0.25em] text-brand-600 font-bold block mb-1">
+          Dudas Frecuentes
+        </span>
+        <h2 class="font-display-luxury text-3xl font-bold text-stone-900">
+          Preguntas de Nuestras Clientas en Saltillo
+        </h2>
+      </div>
+
+      <div class="space-y-4">
+        
+        <div class="border border-stone-200 rounded-2xl overflow-hidden bg-brand-50/50">
+          <button type="button" class="faq-toggle w-full p-5 text-left font-semibold text-stone-800 text-sm flex items-center justify-between gap-4">
+            <span>¿Tienen trajes de baño disponibles todo el año en Saltillo?</span>
+            <i class="fas fa-chevron-down faq-icon text-stone-400 text-xs transition-transform duration-300"></i>
+          </button>
+          <div class="faq-content hidden px-5 pb-5 text-xs sm:text-sm text-stone-600 leading-relaxed border-t border-stone-100 pt-3">
+            ¡Sí! Contamos con sección de trajes de baño (enterizos, dos piezas y salidas de playa) disponible en nuestra sucursal de Plaza La Fragua en diferentes tallas durante todo el año.
+          </div>
+        </div>
+
+        <div class="border border-stone-200 rounded-2xl overflow-hidden bg-brand-50/50">
+          <button type="button" class="faq-toggle w-full p-5 text-left font-semibold text-stone-800 text-sm flex items-center justify-between gap-4">
+            <span>¿Dónde está ubicada exactamente la boutique?</span>
+            <i class="fas fa-chevron-down faq-icon text-stone-400 text-xs transition-transform duration-300"></i>
+          </button>
+          <div class="faq-content hidden px-5 pb-5 text-xs sm:text-sm text-stone-600 leading-relaxed border-t border-stone-100 pt-3">
+            Estamos ubicados en <strong>Plaza La Fragua</strong>, en José María La Fragua #2151A, esquina con Blvd. Jesús Valdés Sánchez, Colonia Guanajuato en Saltillo, Coahuila de Zaragoza.
+          </div>
+        </div>
+
+        <div class="border border-stone-200 rounded-2xl overflow-hidden bg-brand-50/50">
+          <button type="button" class="faq-toggle w-full p-5 text-left font-semibold text-stone-800 text-sm flex items-center justify-between gap-4">
+            <span>¿Cómo funciona el sistema de apartado?</span>
+            <i class="fas fa-chevron-down faq-icon text-stone-400 text-xs transition-transform duration-300"></i>
+          </button>
+          <div class="faq-content hidden px-5 pb-5 text-xs sm:text-sm text-stone-600 leading-relaxed border-t border-stone-100 pt-3">
+            Puedes apartar tu prenda en tienda o vía transferencia por WhatsApp con un anticipo inicial. Tienes un plazo para liquidarla cómodamente y recogerla cuando gustes.
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       12. PIE DE PÁGINA (FOOTER)
+       ========================================================================= -->
+  <footer class="bg-brand-900 text-stone-300 pt-16 pb-12 border-t border-brand-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-stone-800">
+        
+        <div class="space-y-4">
+          <span class="font-display-luxury text-3xl font-bold tracking-[0.2em] text-white uppercase block">
+            VONNE
+          </span>
+          <p class="text-xs text-stone-400 leading-relaxed">
+            Boutique de ropa para mujer y trajes de baño en Saltillo, Coahuila de Zaragoza. Ubicados en Plaza La Fragua.
+          </p>
+          <div class="flex gap-3 pt-2">
+            <a 
+              href="https://www.facebook.com/VonneBoutique" 
+              target="_blank" 
+              class="w-9 h-9 rounded-xl bg-stone-800 hover:bg-blue-600 text-white flex items-center justify-center transition"
+              title="Facebook Vonne Boutique"
+            >
+              <i class="fab fa-facebook-f text-sm"></i>
+            </a>
+            <a 
+              href="https://wa.me/528444551868" 
+              target="_blank" 
+              class="w-9 h-9 rounded-xl bg-stone-800 hover:bg-emerald-600 text-white flex items-center justify-center transition"
+              title="WhatsApp Vonne Boutique"
+            >
+              <i class="fab fa-whatsapp text-sm"></i>
+            </a>
+            <a 
+              href="https://maps.app.goo.gl/fAytGUAwGXgLNex69" 
+              target="_blank" 
+              class="w-9 h-9 rounded-xl bg-stone-800 hover:bg-amber-600 text-white flex items-center justify-center transition"
+              title="Google Maps Plaza La Fragua"
+            >
+              <i class="fas fa-map-marker-alt text-sm"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-widest text-white">Navegación</h4>
+          <ul class="space-y-2 text-xs text-stone-400">
+            <li><a href="#catalogo" class="hover:text-amber-300 transition">Catálogo de Ropa</a></li>
+            <li><a href="#facebook-feed-section" class="hover:text-amber-300 transition">Feed de Facebook</a></li>
+            <li><a href="#trajes-bano-section" class="hover:text-amber-300 transition">Trajes de Baño Saltillo</a></li>
+            <li><a href="#promociones" class="hover:text-amber-300 transition">Liquidación Facebook</a></li>
+            <li><a href="#ubicacion" class="hover:text-amber-300 transition">Plaza La Fragua</a></li>
+          </ul>
+        </div>
+
+        <div class="space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-widest text-white">Horario en Tienda</h4>
+          <div class="text-xs text-stone-400 space-y-1.5">
+            <p><strong class="text-stone-200">Lunes a Viernes:</strong> 12:00 PM - 8:00 PM</p>
+            <p><strong class="text-stone-200">Sábados:</strong> 11:00 AM - 7:00 PM</p>
+            <p><strong class="text-stone-200">Domingos:</strong> Cerrado</p>
+            <div class="store-live-status pt-2"></div>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-widest text-white">Ubicación Saltillo</h4>
+          <p class="text-xs text-stone-400 leading-relaxed">
+            <strong>Plaza La Fragua</strong><br />
+            José María La Fragua #2151A<br />
+            Colonia Guanajuato, C.P. 25280<br />
+            Saltillo, Coahuila de Zaragoza, México.
+          </p>
+          <div class="pt-2 flex flex-col gap-1.5">
+            <a 
+              href="https://maps.app.goo.gl/fAytGUAwGXgLNex69" 
+              target="_blank"
+              class="inline-flex items-center gap-1.5 text-xs text-amber-300 hover:underline"
+            >
+              <span>Abrir en Google Maps</span>
+              <i class="fas fa-external-link-alt text-[10px]"></i>
+            </a>
+            <button 
+              type="button" 
+              onclick="openDriveSyncModal()"
+              class="text-[11px] text-stone-400 hover:text-white text-left underline pt-1"
+            >
+              ⚙️ Conectar Google Drive / Sheets
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-stone-500 gap-4">
+        <p>© 2026 Vonne Boutique Saltillo. Todos los derechos reservados.</p>
+        <p class="flex items-center gap-1 text-[11px]">
+          <span>Plaza La Fragua, Saltillo • Hecho con</span> <i class="fas fa-heart text-red-500 text-[10px]"></i> <span>para Vonne Boutique</span>
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- =========================================================================
+       13. BARRA DE ACCIÓN RÁPIDA MÓVIL (91% DE VISITANTES SON MÓVILES)
+       ========================================================================= -->
+  <div class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-stone-200 py-2.5 px-4 flex items-center justify-around shadow-2xl">
+    <a 
+      href="https://maps.app.goo.gl/fAytGUAwGXgLNex69" 
+      target="_blank" 
+      class="flex flex-col items-center gap-1 text-stone-700 hover:text-brand-900 transition"
+    >
+      <i class="fas fa-map-marker-alt text-amber-700 text-lg"></i>
+      <span class="text-[10px] font-semibold">Cómo Llegar</span>
+    </a>
+
+    <a 
+      href="https://wa.me/528444551868?text=Hola%20Vonne%20Boutique!%20Quisiera%20consultar%20sobre%20una%20prenda%20o%20traje%20de%20ba%C3%B1o."
+      target="_blank" 
+      class="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl shadow-md text-xs font-bold"
+    >
+      <i class="fab fa-whatsapp text-base"></i>
+      <span>WhatsApp</span>
+    </a>
+
+    <button 
+      type="button" 
+      class="open-bag-btn flex flex-col items-center gap-1 text-stone-700 relative"
+    >
+      <i class="fas fa-shopping-bag text-brand-900 text-lg"></i>
+      <span class="text-[10px] font-semibold">Bolsa</span>
+      <span class="bag-count-badge hidden absolute -top-1 right-2 bg-amber-500 text-stone-900 font-bold text-[9px] w-4 h-4 rounded-full flex items-center justify-center">
+        0
+      </span>
+    </button>
+
+    <a 
+      href="tel:+528444551868" 
+      class="flex flex-col items-center gap-1 text-stone-700 hover:text-brand-900 transition"
+    >
+      <i class="fas fa-phone text-stone-800 text-lg"></i>
+      <span class="text-[10px] font-semibold">Llamar</span>
+    </a>
+  </div>
+
+  <!-- Botón Flotante Persistente de WhatsApp en Desktop -->
+  <a 
+    href="https://wa.me/528444551868?text=Hola%20Vonne%20Boutique!%20Quisiera%20consultar%20sobre%20las%20prendas%20disponibles%20en%20Plaza%20La%20Fragua."
+    target="_blank"
+    class="hidden md:flex fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full btn-whatsapp-action pulse-whatsapp items-center justify-center text-white text-2xl shadow-2xl transition hover:scale-110"
+    title="Escríbenos por WhatsApp"
+    aria-label="WhatsApp Vonne Boutique"
+  >
+    <i class="fab fa-whatsapp"></i>
+  </a>
+
+  <!-- =========================================================================
+       14. MODAL DE VISTA RÁPIDA (QUICK VIEW)
+       ========================================================================= -->
+  <div id="quickview-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+    <div id="quickview-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"></div>
+
+    <div class="relative bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto z-10 shadow-2xl border border-stone-200 animate-fade-in">
+      <button 
+        type="button" 
+        id="close-quickview-btn"
+        class="absolute top-4 right-4 z-20 w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center transition"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 p-6 sm:p-8">
+        <div class="aspect-[3/4] rounded-2xl overflow-hidden bg-stone-100 relative">
+          <img id="qv-image" src="" alt="" class="w-full h-full object-cover" />
+          <span id="qv-badge" class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold badge-gold shadow-sm"></span>
+        </div>
+
+        <div class="flex flex-col justify-between space-y-4">
+          <div>
+            <span id="qv-code" class="text-xs font-mono text-stone-400 uppercase tracking-wider block"></span>
+            <h3 id="qv-name" class="font-display-luxury text-2xl font-bold text-stone-900 mt-1"></h3>
+            
+            <div class="flex items-baseline gap-3 mt-3">
+              <span id="qv-price" class="text-2xl font-bold text-stone-900"></span>
+              <span id="qv-original-price" class="text-sm line-through text-stone-400"></span>
+            </div>
+
+            <p id="qv-description" class="text-xs sm:text-sm text-stone-600 leading-relaxed mt-4"></p>
+
+            <div class="mt-5">
+              <label class="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
+                Selecciona tu Talla:
+              </label>
+              <div id="qv-sizes-container" class="flex flex-wrap gap-2"></div>
+            </div>
+          </div>
+
+          <div class="space-y-2.5 pt-4 border-t border-stone-100">
+            <button 
+              type="button" 
+              onclick="addCurrentModalToBag()"
+              class="w-full py-3.5 px-4 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold tracking-wider uppercase transition flex items-center justify-center gap-2 shadow"
+            >
+              <i class="fas fa-shopping-bag"></i>
+              <span>Agregar a Bolsa de Apartado</span>
+            </button>
+
+            <button 
+              type="button" 
+              onclick="askCurrentModalWhatsApp()"
+              class="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold tracking-wider uppercase transition flex items-center justify-center gap-2 shadow-sm"
+            >
+              <i class="fab fa-whatsapp text-base"></i>
+              <span>Apartar de Inmediato por WhatsApp</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       15. DRAWER SLIDE-OVER DE BOLSA / CARRITO DE APARTADO
+       ========================================================================= -->
+  <div id="bag-drawer" class="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white shadow-2xl border-l border-brand-200 transform translate-x-full transition-transform duration-300 flex flex-col">
+    <div class="p-5 border-b border-stone-200 flex items-center justify-between bg-stone-50">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-shopping-bag text-brand-700"></i>
+        <h3 class="font-display-luxury text-lg font-bold text-stone-900">Tu Bolsa de Apartado</h3>
+      </div>
+      <button 
+        type="button" 
+        id="close-bag-btn"
+        class="w-8 h-8 rounded-full bg-stone-200/70 hover:bg-stone-300 text-stone-700 flex items-center justify-center transition"
+      >
+        <i class="fas fa-times text-xs"></i>
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-5 space-y-4">
+      <div id="bag-empty-state" class="text-center py-16 px-4">
+        <div class="w-16 h-16 rounded-full bg-brand-50 text-brand-400 flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-shopping-bag text-2xl"></i>
+        </div>
+        <h4 class="text-base font-semibold text-stone-800">Tu bolsa está vacía</h4>
+        <p class="text-xs text-stone-500 mt-1 max-w-xs mx-auto">
+          Explora nuestro catálogo y agrega vestidos, trajes de baño o promociones para apartar en Plaza La Fragua.
+        </p>
+      </div>
+
+      <div id="bag-items-list" class="space-y-3"></div>
+    </div>
+
+    <div id="bag-footer" class="p-5 border-t border-stone-200 bg-stone-50 space-y-4">
+      <div class="flex items-center justify-between">
+        <span class="text-sm text-stone-600 font-medium">Total Estimado:</span>
+        <span id="bag-total-amount" class="text-xl font-bold text-stone-900 font-display-luxury">$0 MXN</span>
+      </div>
+
+      <p class="text-[11px] text-stone-500 leading-tight">
+        Al hacer clic, se generará tu mensaje con el resumen de prendas y tallas para enviarlo directamente al WhatsApp de Vonne Boutique Saltillo (Plaza La Fragua).
+      </p>
+
+      <div class="space-y-2">
+        <button 
+          type="button" 
+          onclick="checkoutViaWhatsApp()"
+          class="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold tracking-wider uppercase transition flex items-center justify-center gap-2 shadow-lg"
+        >
+          <i class="fab fa-whatsapp text-lg"></i>
+          <span>Enviar Apartado por WhatsApp</span>
+        </button>
+
+        <button 
+          type="button" 
+          onclick="clearBag()"
+          class="w-full py-2 text-stone-400 hover:text-stone-700 text-[11px] transition text-center"
+        >
+          Vaciar bolsa
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="bag-drawer-backdrop" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 hidden transition-opacity"></div>
+
+  <!-- =========================================================================
+       16. MODAL DE CONFIGURACIÓN DE GOOGLE DRIVE / SHEETS
+       ========================================================================= -->
+  <div id="drive-sync-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+    <div id="drive-sync-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+
+    <div class="relative bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 z-10 shadow-2xl border border-stone-200 animate-fade-in space-y-5">
+      
+      <div class="flex items-center justify-between pb-4 border-b border-stone-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center">
+            <i class="fas fa-sliders-h text-xl"></i>
+          </div>
+          <div>
+            <h3 class="font-display-luxury text-xl font-bold text-stone-900">Sincronización de Catálogo e Inventario</h3>
+            <p class="text-xs text-stone-500">Loyverse POS (Punto de Venta) + Google Drive (Fotos)</p>
+          </div>
+        </div>
+        <button type="button" id="close-drive-sync-btn" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center">
+          <i class="fas fa-times text-xs"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs sm:text-sm text-stone-600">
+        <!-- Tarjeta Loyverse POS -->
+        <div class="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200 text-xs space-y-2 text-emerald-950">
+          <div class="flex items-center justify-between">
+            <span class="font-bold flex items-center gap-1.5 text-emerald-800 text-sm">
+              <i class="fas fa-cash-register"></i> 1. Inventario Loyverse POS
+            </span>
+            <span class="px-2 py-0.5 bg-emerald-200 text-emerald-800 rounded font-semibold text-[10px]">Activo</span>
+          </div>
+          <p class="text-[11px] leading-relaxed text-stone-600">
+            Tu catálogo web ya está vinculado a tus prendas reales de caja. Para actualizar existencias o precios:
+          </p>
+          <ul class="text-[11px] list-disc list-inside space-y-1 text-stone-700">
+            <li>Da doble clic al archivo <strong class="font-mono bg-white px-1 py-0.5 rounded border border-emerald-300">sincronizar_loyverse.bat</strong> en tu computadora.</li>
+            <li>O para sincronización en vivo por API, guarda tu Token en <strong class="font-mono bg-white px-1 py-0.5 rounded border border-emerald-300">loyverse_config.json</strong>.</li>
+          </ul>
+        </div>
+
+        <!-- Tarjeta Google Drive -->
+        <div class="bg-amber-50/70 p-4 rounded-2xl border border-amber-200 text-xs space-y-2.5 text-amber-950">
+          <div class="flex items-center justify-between">
+            <span class="font-bold flex items-center gap-1.5 text-amber-900 text-sm">
+              <i class="fab fa-google-drive"></i> 2. Fotos y Edición en Google Drive (Opcional)
+            </span>
+          </div>
+          <p class="text-[11px] text-stone-600 leading-relaxed">
+            Si deseas personalizar fotos o textos desde tu celular o computadora en una Hoja de Cálculo de Google Drive, pega tu enlace publicado en CSV:
+          </p>
+          <div>
+            <label class="block text-[11px] font-bold text-stone-700 uppercase tracking-wider mb-1">
+              Enlace de Google Sheets publicado (CSV):
+            </label>
+            <input 
+              type="url" 
+              id="drive-url-input" 
+              placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?output=csv" 
+              class="w-full p-2.5 bg-white border border-amber-300 rounded-xl text-xs font-mono text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+            <p class="text-[10px] text-stone-400 mt-1">
+              * Ver guía paso a paso en <code class="font-mono bg-stone-100 px-1 py-0.5 rounded">INSTRUCCIONES_GOOGLE_DRIVE.md</code>
+            </p>
+          </div>
+        </div>
+
+      <div class="pt-4 border-t border-stone-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <button 
+          type="button" 
+          id="clear-drive-url-btn" 
+          class="text-xs text-stone-400 hover:text-red-600 transition underline"
+        >
+          Desconectar enlace
+        </button>
+
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <button 
+            type="button" 
+            onclick="closeDriveSyncModal()" 
+            class="px-4 py-2.5 rounded-xl border border-stone-200 text-xs font-semibold text-stone-600 hover:bg-stone-50"
+          >
+            Cancelar
+          </button>
+          <button 
+            type="button" 
+            id="save-drive-url-btn" 
+            class="px-6 py-2.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold uppercase tracking-wider shadow transition flex items-center gap-2"
+          >
+            <i class="fas fa-save"></i>
+            <span>Guardar y Sincronizar</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Datos de Catálogo Oficial (Sincronizado con Loyverse POS) -->
+  <script src="catalogo_data.js"></script>
+  <!-- Script Principal -->
+  <script src="app.js"></script>
+
+  <!-- Script para el menú móvil -->
+  <script>
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const mobileLinks = document.querySelectorAll('.mobile-nav-link');
+
+    if (mobileMenuBtn && mobileMenu) {
+      mobileMenuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+      });
+
+      mobileLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          mobileMenu.classList.add('hidden');
+        });
+      });
+    }
+
+    const bagDrawer = document.getElementById('bag-drawer');
+    const bagBackdrop = document.getElementById('bag-drawer-backdrop');
+
+    const observer = new MutationObserver(() => {
+      if (bagDrawer && bagBackdrop) {
+        if (!bagDrawer.classList.contains('translate-x-full')) {
+          bagBackdrop.classList.remove('hidden');
+        } else {
+          bagBackdrop.classList.add('hidden');
+        }
+      }
+    });
+
+    if (bagDrawer) {
+      observer.observe(bagDrawer, { attributes: true, attributeFilter: ['class'] });
+    }
+  </script>
+
+</body>
+</html>
