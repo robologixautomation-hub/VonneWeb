@@ -1,4 +1,4 @@
-﻿# Python cache
+# Python cache
 __pycache__/
 *.py[cod]
 *$py.class
@@ -12,5 +12,7 @@ venv/
 .DS_Store
 Thumbs.db
 
-# Logs locales
+# Logs y estados locales
 historial_sincronizacion.log
+telegram_state.json
+telegram_bot.log

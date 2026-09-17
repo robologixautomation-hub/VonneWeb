@@ -1,0 +1,10 @@
+{
+  "bot_token": "8836320390:AAEton-8-qmRwhRe9TZp4_SXDTb-ZCpZrmg",
+  "chat_id": "-5559233999",
+  "check_interval_seconds": 30,
+  "notify_sales": true,
+  "notify_cancellations": true,
+  "notify_drawer_open": true,
+  "notify_drawer_close": true,
+  "timezone_offset_hours": -6
+}
