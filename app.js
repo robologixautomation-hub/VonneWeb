@@ -713,9 +713,29 @@ function changeBagItemQuantity(index, delta) {
   saveBagToLocalStorage();
 }
 
+function saveBagToLocalStorage() {
+  try {
+    localStorage.setItem("vonne_boutique_bag", JSON.stringify(shoppingBag));
+  } catch (e) {
+    console.error("Error guardando bolsa en localStorage:", e);
+  }
+}
+
+function clearBag() {
+  shoppingBag = [];
+  saveBagToLocalStorage();
+  updateBagBadge();
+  renderBagItems();
+  showToast("Tu bolsa de apartado ha sido vaciada.");
+}
+
+async function loadProductsFromGoogleSheets() {
+  await loadCatalog();
+}
+
 function updateBagBadge() {
-  const totalCount = shoppingBag.reduce((sum, item) => sum + item.quantity, 0);
-  const badges = document.querySelectorAll(".bag-badge-count");
+  const totalCount = shoppingBag.reduce((sum, item) => sum + (item.quantity || 1), 0);
+  const badges = document.querySelectorAll(".bag-count-badge, .bag-badge-count");
   badges.forEach(b => {
     b.textContent = totalCount;
     if (totalCount > 0) {
