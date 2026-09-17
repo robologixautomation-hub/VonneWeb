@@ -888,7 +888,9 @@ class LoyverseAssistant:
         strict_scored = [item for item in scored if item[1] == max_matched]
         strict_scored.sort(key=lambda x: x[0], reverse=True)
 
-        matches = [p for s, m, p in strict_scored if s > 0][:5]
+        # BUGFIX v2.3: Remover límite de 5 resultados - devolver TODOS los resultados encontrados
+        # Y filtrar solo prendas con stock >= 1 (no mostrar agotadas)
+        matches = [p for s, m, p in strict_scored if s > 0 and int(p.get("stock", 0)) >= 1]
 
         if not matches:
             return (
@@ -906,7 +908,6 @@ class LoyverseAssistant:
         for p in matches:
             nombre = p.get("nombre", "Prenda")
             codigo = p.get("codigo", "")
-            precio = format_money(p.get("precio", 0))
             tallas_list = p.get("tallas", ["UNITALLA"])
 
             if target_size:
@@ -917,9 +918,10 @@ class LoyverseAssistant:
             stock = int(p.get("stock", 0))
             badge = "🟢 Disponible" if stock > 3 else ("🟡 Pocas piezas" if stock > 0 else "🔴 Agotado")
 
+            # BUGFIX v2.3: Mostrar SOLO inventario (sin precio)
+            # Si quiere precio, que pregunta específicamente: "¿cuánto cuesta X?"
             lines.append(
                 f"• <b>{nombre}</b> (<code>{codigo}</code>)\n"
-                f"  💰 <b>Precio:</b> {precio}\n"
                 f"  📏 <b>Tallas:</b> {tallas_str}\n"
                 f"  📦 <b>Existencia:</b> <b>{stock} piezas</b> ({badge})\n"
             )
