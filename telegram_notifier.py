@@ -686,7 +686,7 @@ class LoyverseTelegramNotifier:
                 continue
 
             print(f"💬 Mensaje recibido: '{raw_text}' en chat {sender_chat_id}")
-            reply = self.assistant.answer(raw_text)
+            reply = self.assistant.answer(raw_text, chat_id=sender_chat_id)
             if reply:
                 send_telegram(bot_token, sender_chat_id, reply)
 

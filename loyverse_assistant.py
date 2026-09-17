@@ -81,6 +81,7 @@ class LoyverseAssistant:
         self.employees_cache = {}
         self.payment_types_cache = {}
         self.gemini_api_key = self.tg_cfg.get("gemini_api_key", os.environ.get("GEMINI_API_KEY", "")).strip()
+        self.chat_histories = defaultdict(list)
         self._load_metadata()
 
     def _api_get(self, endpoint):
@@ -411,6 +412,84 @@ class LoyverseAssistant:
             f"📍 <i>Plaza La Fragua, Saltillo</i>"
         )
 
+    # -------------------------------------------------------------------------
+    # Reporte de Ventas por Prenda Específica en un Periodo
+    # -------------------------------------------------------------------------
+    def get_garment_sales_report(self, garment_name, start_dt, end_dt, label=None):
+        s_loc = datetime(start_dt.year, start_dt.month, start_dt.day, 0, 0, 0, tzinfo=self.tz)
+        e_loc = datetime(end_dt.year, end_dt.month, end_dt.day, 23, 59, 59, tzinfo=self.tz)
+
+        s_utc = s_loc.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        e_utc = e_loc.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        receipts = []
+        cursor = None
+        while True:
+            url = f"receipts?created_at_min={s_utc}&created_at_max={e_utc}&limit=250"
+            if cursor:
+                url += f"&cursor={cursor}"
+            try:
+                data = self._api_get(url)
+                batch = data.get("receipts", [])
+                receipts.extend(batch)
+                cursor = data.get("cursor")
+                if not cursor or len(batch) == 0:
+                    break
+            except Exception as e:
+                break
+
+        sales_receipts = [r for r in receipts if r.get("receipt_type") == "SALE" and not r.get("cancelled_at")]
+        garment_norm = normalize_text(garment_name)
+        matched_items = defaultdict(lambda: {"qty": 0, "money": 0.0})
+        total_qty = 0
+        total_money = 0.0
+
+        for r in sales_receipts:
+            for it in r.get("line_items", []):
+                item_name = it.get("item_name", "Prenda")
+                if garment_norm in normalize_text(item_name):
+                    q = it.get("quantity", 1)
+                    m = it.get("total_money", 0.0)
+                    matched_items[item_name]["qty"] += q
+                    matched_items[item_name]["money"] += m
+                    total_qty += q
+                    total_money += m
+
+        s_m = MONTHS_ES.get(start_dt.month, "")
+        e_m = MONTHS_ES.get(end_dt.month, "")
+        if not label:
+            if start_dt.day == end_dt.day and start_dt.month == end_dt.month and start_dt.year == end_dt.year:
+                label = f"{start_dt.day} de {e_m}, {end_dt.year}"
+            elif start_dt.month == end_dt.month and start_dt.year == end_dt.year:
+                label = f"Del {start_dt.day} al {end_dt.day} de {e_m}, {end_dt.year}"
+            else:
+                label = f"Del {start_dt.day} de {s_m} al {end_dt.day} de {e_m}, {end_dt.year}"
+
+        if total_qty == 0:
+            return (
+                f"🧥 <b>REPORTE DE VENTAS: {garment_name.upper()}</b>\n"
+                f"🏪 <b>Vonne Boutique Saltillo</b>\n"
+                f"📅 <i>Periodo: {label}</i>\n\n"
+                f"ℹ️ No se registraron ventas de <b>{garment_name}</b> en este periodo."
+            )
+
+        lines = [
+            f"🧥 <b>REPORTE DE VENTAS: {garment_name.upper()}</b>\n"
+            f"🏪 <b>Vonne Boutique Saltillo</b>\n"
+            f"📅 <i>Periodo: {label}</i>\n\n"
+            f"📊 <b>Total Vendido:</b> <b>{total_qty} piezas</b>\n"
+            f"💰 <b>Ingreso Total:</b> <b>{format_money(total_money)}</b>\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"🛍️ <b>DESGLOSE POR MODELO / COLOR:</b>"
+        ]
+
+        sorted_items = sorted(matched_items.items(), key=lambda x: x[1]["qty"], reverse=True)
+        for name, d in sorted_items:
+            lines.append(f"• <b>{d['qty']}x</b> {name} — {format_money(d['money'])}")
+
+        lines.append("━━━━━━━━━━━━━━━━━━━━\n📍 <i>Plaza La Fragua, Saltillo</i>")
+        return "\n".join(lines)
+
     def parse_date_intent(self, text):
         now_dt = datetime.now(self.tz)
         clean = text.lower().strip()
@@ -420,14 +499,19 @@ class LoyverseAssistant:
             target = now_dt - timedelta(days=2)
             return {"type": "single_day", "date": target}
 
-        # 2. Rango de fechas: "del 1 de septiembre del 2026 al 17 de septiembre del 2026", "1 al 17 de septiembre"
-        m_range = re.search(r'\b(?:del?\s+)?(\d{1,2})(?:\s+de\s+([a-z]+))?(?:\s+del?\s+(\d{4}))?\s+al\s+(\d{1,2})(?:\s+de\s+([a-z]+))?(?:\s+del?\s+(\d{4}))?\b', clean)
+        # 2. Rango de fechas: soporta "desde el 1 de septiembre hasta el 17 de septiembre", "del 1 al 17 de septiembre", "1 al 17", etc.
+        m_range = re.search(
+            r'\b(?:desde|del?)\s+(?:el\s+)?(\d{1,2})(?:\s+de\s+([a-z]+))?(?:\s+(?:de|del)?\s+(\d{4}))?'
+            r'\s+(?:hasta|al?)\s+(?:el\s+)?(?:dia\s+de\s+hoy\s+)?(\d{1,2})?(?:\s+de\s+([a-z]+))?(?:\s+(?:de|del)?\s+(\d{4}))?\b',
+            clean
+        )
         if m_range:
             d1 = int(m_range.group(1))
             m1_str = m_range.group(2)
             y1 = int(m_range.group(3)) if m_range.group(3) else None
 
-            d2 = int(m_range.group(4))
+            d2_val = m_range.group(4)
+            d2 = int(d2_val) if d2_val else now_dt.day
             m2_str = m_range.group(5)
             y2 = int(m_range.group(6)) if m_range.group(6) else None
 
@@ -866,8 +950,13 @@ class LoyverseAssistant:
                 return self.answer_stock_or_price(q)
             elif name == "consultar_ventas":
                 periodo = (args.get("periodo") or "hoy").lower()
+                prenda = args.get("prenda")
                 d_intent = self.parse_date_intent(periodo)
                 if d_intent:
+                    s_dt = d_intent.get("start") or d_intent.get("date")
+                    e_dt = d_intent.get("end") or d_intent.get("date")
+                    if prenda:
+                        return self.get_garment_sales_report(prenda, s_dt, e_dt)
                     if d_intent["type"] == "date_range":
                         return self.get_date_range_sales_summary(d_intent["start"], d_intent["end"])
                     elif d_intent["type"] == "single_day":
@@ -877,13 +966,26 @@ class LoyverseAssistant:
                         return self.format_sales_summary_msg(stats, title=f"VENTAS DEL {target.day} DE {month_str}")
                 if "ayer" in periodo:
                     yesterday = datetime.now(self.tz) - timedelta(days=1)
+                    if prenda:
+                        return self.get_garment_sales_report(prenda, yesterday, yesterday)
                     stats = self.get_day_sales_summary(yesterday)
                     return self.format_sales_summary_msg(stats, title="VENTAS DE AYER")
                 elif "semana" in periodo:
+                    now_dt = datetime.now(self.tz)
+                    s_dt = now_dt - timedelta(days=7)
+                    if prenda:
+                        return self.get_garment_sales_report(prenda, s_dt, now_dt)
                     return self.get_period_sales_summary(7, "ÚLTIMOS 7 DÍAS")
                 elif "mes" in periodo:
+                    now_dt = datetime.now(self.tz)
+                    s_dt = now_dt - timedelta(days=30)
+                    if prenda:
+                        return self.get_garment_sales_report(prenda, s_dt, now_dt)
                     return self.get_period_sales_summary(30, "ÚLTIMOS 30 DÍAS")
                 else:
+                    if prenda:
+                        now_dt = datetime.now(self.tz)
+                        return self.get_garment_sales_report(prenda, now_dt, now_dt)
                     stats = self.get_day_sales_summary()
                     return self.format_sales_summary_msg(stats, title="VENTAS DE HOY")
             elif name == "consultar_prendas_vendidas":
@@ -923,7 +1025,7 @@ class LoyverseAssistant:
             return f"Error ejecutando consulta en Loyverse: {e}"
         return "Consulta completada."
 
-    def ask_gemini(self, user_message):
+    def ask_gemini(self, user_message, chat_id="default"):
         if not self.gemini_api_key:
             return None
 
@@ -947,11 +1049,12 @@ class LoyverseAssistant:
                 },
                 {
                     "name": "consultar_ventas",
-                    "description": "Consulta el reporte de ventas de un período (hoy, ayer, semana, mes, o una fecha/rango específico como '15 de septiembre' o 'del 1 al 17 de septiembre').",
+                    "description": "Consulta el reporte de ventas de un período (hoy, ayer, semana, mes, o una fecha/rango específico como '15 de septiembre' o 'del 1 al 17 de septiembre'), permitiendo opcionalmente filtrar por una prenda específica (ej. 'blazer').",
                     "parameters": {
                         "type": "OBJECT",
                         "properties": {
-                            "periodo": {"type": "STRING", "description": "Periodo a consultar: 'hoy', 'ayer', 'semana', 'mes', '15 de septiembre', 'del 1 al 17 de septiembre'"}
+                            "periodo": {"type": "STRING", "description": "Periodo a consultar: 'hoy', 'ayer', 'semana', 'mes', '15 de septiembre', 'del 1 al 17 de septiembre'"},
+                            "prenda": {"type": "STRING", "description": "Nombre de la prenda a contabilizar si se especificó (ej. 'blazer', 'vestido', 'faja')"}
                         },
                         "required": ["periodo"]
                     }
@@ -1022,11 +1125,18 @@ class LoyverseAssistant:
             }]
         }
 
+        # Preparar historial de conversación para memoria
+        history_contents = []
+        for turn in self.chat_histories[chat_id][-4:]:
+            history_contents.append(turn)
+
         # Priorizar modelos Lite (15 RPM vs 5 RPM) para evitar Rate Limit 429
         models = ["gemini-3.5-flash-lite", "gemini-3-flash-preview", "gemini-3.5-flash"]
         for m in models:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent"
-            contents = [{"role": "user", "parts": [{"text": user_message}]}]
+            contents = list(history_contents)
+            contents.append({"role": "user", "parts": [{"text": user_message}]})
+
             payload = {
                 "contents": contents,
                 "tools": tools_def,
@@ -1079,10 +1189,21 @@ class LoyverseAssistant:
                         parts2 = c2.get("content", {}).get("parts", [])
                         for p2 in parts2:
                             if "text" in p2:
-                                return p2["text"]
+                                reply_txt = p2["text"]
+                                # Guardar memoria conversacional
+                                self.chat_histories[chat_id].append({"role": "user", "parts": [{"text": user_message}]})
+                                self.chat_histories[chat_id].append({"role": "model", "parts": [{"text": reply_txt}]})
+                                if len(self.chat_histories[chat_id]) > 8:
+                                    self.chat_histories[chat_id] = self.chat_histories[chat_id][-8:]
+                                return reply_txt
 
                     if "text" in part:
-                        return part["text"]
+                        reply_txt = part["text"]
+                        self.chat_histories[chat_id].append({"role": "user", "parts": [{"text": user_message}]})
+                        self.chat_histories[chat_id].append({"role": "model", "parts": [{"text": reply_txt}]})
+                        if len(self.chat_histories[chat_id]) > 8:
+                            self.chat_histories[chat_id] = self.chat_histories[chat_id][-8:]
+                        return reply_txt
 
             except urllib.error.HTTPError as e:
                 if e.code == 429:
@@ -1100,15 +1221,29 @@ class LoyverseAssistant:
     # -------------------------------------------------------------------------
     # Cerebro del Asistente: Comprensión de Intenciones
     # -------------------------------------------------------------------------
-    def answer(self, text):
+    def answer(self, text, chat_id="default"):
         clean = text.lower().strip()
         clean = re.sub(r'^/(?:asistente|pregunta|ask|consulta)\s*', '', clean)
         clean = re.sub(r'@\w+', '', clean).strip()
         norm = normalize_text(clean)
 
-        # 0. Detección prioritaria de fechas o rangos de fechas (ej. "ventas del 15 septiembre", "del 1 al 17 de septiembre")
+        garment_words = [
+            "blazer", "vestido", "falda", "short", "blusa", "chaleco", "capa",
+            "conjunto", "pantalon", "top", "playera", "satin", "gamuza", "mesh",
+            "peluche", "faja", "cinto"
+        ]
+
+        # 0. Detección prioritaria de fechas o rangos de fechas con o sin filtro de prenda
         date_intent = self.parse_date_intent(clean)
         if date_intent:
+            start_dt = date_intent.get("start") or date_intent.get("date")
+            end_dt = date_intent.get("end") or date_intent.get("date")
+
+            # Si pregunta por una prenda específica (ej. "contabiliza los blazer que hemos vendido desde el 1 de septiembre hasta el 17 de septiembre")
+            found_garment = next((g for g in garment_words if re.search(r'\b' + g + r'\b', norm)), None)
+            if found_garment:
+                return self.get_garment_sales_report(found_garment, start_dt, end_dt)
+
             if date_intent["type"] == "date_range":
                 return self.get_date_range_sales_summary(date_intent["start"], date_intent["end"])
             elif date_intent["type"] == "single_day":
@@ -1120,9 +1255,9 @@ class LoyverseAssistant:
                 else:
                     return self.format_sales_summary_msg(stats, title=f"VENTAS DEL {target.day} DE {month_str}")
 
-        # 1. Si hay Gemini API configurada, delegar a Inteligencia Artificial Conversacional
+        # 1. Si hay Gemini API configurada, delegar a Inteligencia Artificial Conversacional (con Memoria)
         if self.gemini_api_key:
-            ai_reply = self.ask_gemini(text)
+            ai_reply = self.ask_gemini(text, chat_id=chat_id)
             if ai_reply:
                 return ai_reply
 
