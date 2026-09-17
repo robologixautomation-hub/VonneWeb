@@ -109,9 +109,9 @@ async function loadCatalog() {
   if (sheetUrl) {
     if (syncStatusEl) {
       syncStatusEl.innerHTML = `
-        <span class="inline-flex items-center gap-1.5 text-[11px] text-amber-800 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 animate-pulse">
-          <i class="fas fa-sync-alt fa-spin"></i>
-          <span>Sincronizando con Google Drive...</span>
+        <span class="inline-flex items-center gap-1.5 text-[11px] text-stone-600 bg-stone-100 px-2.5 py-1 rounded-full border border-stone-200 animate-pulse">
+          <i class="fas fa-sync-alt fa-spin text-stone-500"></i>
+          <span>Actualizando catálogo...</span>
         </span>
       `;
     }
@@ -126,9 +126,8 @@ async function loadCatalog() {
           if (syncStatusEl) {
             syncStatusEl.innerHTML = `
               <span class="inline-flex items-center gap-1 text-[11px] text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                <i class="fab fa-google-drive text-emerald-600"></i>
-                <span>Sincronizado con Google Drive (${parsedProducts.length} prendas)</span>
-                <button onclick="openDriveSyncModal()" class="ml-1 text-stone-400 hover:text-stone-700"><i class="fas fa-cog"></i></button>
+                <i class="fas fa-check-circle text-emerald-600"></i>
+                <span>Catálogo en línea (${parsedProducts.length} prendas)</span>
               </span>
             `;
           }
@@ -164,9 +163,8 @@ async function loadCatalog() {
       const inStockCount = PRODUCTS.filter(p => (p.stock || 0) > 0).length;
       syncStatusEl.innerHTML = `
         <span class="inline-flex items-center gap-1.5 text-[11px] text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 shadow-xs">
-          <i class="fas fa-cash-register text-emerald-600"></i>
-          <span>Inventario Real Loyverse POS (${inStockCount} prendas en tienda)</span>
-          <button onclick="openDriveSyncModal()" title="Opciones de sincronización" class="ml-1 text-stone-400 hover:text-stone-700"><i class="fas fa-cog"></i></button>
+          <i class="fas fa-check-circle text-emerald-600"></i>
+          <span>Inventario en vivo (${inStockCount} prendas disponibles)</span>
         </span>
       `;
     }
@@ -178,9 +176,9 @@ async function loadCatalog() {
   PRODUCTS = [...DEFAULT_PRODUCTS];
   if (syncStatusEl) {
     syncStatusEl.innerHTML = `
-      <span class="inline-flex items-center gap-1 text-[11px] text-stone-500 bg-stone-100 px-2.5 py-1 rounded-full border border-stone-200">
-        <i class="fas fa-info-circle text-stone-400"></i>
-        <span>Catálogo de muestra • <button onclick="openDriveSyncModal()" class="text-amber-700 font-bold underline hover:text-amber-900">Sincronizar</button></span>
+      <span class="inline-flex items-center gap-1 text-[11px] text-stone-600 bg-stone-100 px-2.5 py-1 rounded-full border border-stone-200">
+        <i class="fas fa-check-circle text-emerald-600"></i>
+        <span>Prendas disponibles en boutique</span>
       </span>
     `;
   }
