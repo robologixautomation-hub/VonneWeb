@@ -27,6 +27,28 @@ from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 from loyverse_assistant import LoyverseAssistant
 
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
+
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/plain; charset=utf-8')
+        self.end_headers()
+        self.wfile.write(b"Vonne Boutique Telegram Bot is running 24/7!")
+    def log_message(self, format, *args):
+        pass
+
+def start_health_server():
+    port = int(os.environ.get("PORT", 10000))
+    try:
+        server = HTTPServer(('0.0.0.0', port), HealthHandler)
+        t = threading.Thread(target=server.serve_forever, daemon=True)
+        t.start()
+        print(f"Servidor de estado HTTP activo en puerto {port}")
+    except Exception as e:
+        print(f"Aviso servidor HTTP: {e}")
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Soporte para ejecución en segundo plano (pythonw) y consola
@@ -729,6 +751,8 @@ def run_daemon():
     print("1. Notificaciones automáticas cada 30 segundos.")
     print("2. Respuestas interactivas a comandos cada 3 segundos (/ventas, /caja, etc).")
     print("Presiona Ctrl + C para detener.\n")
+
+    start_health_server()
 
     notifier = LoyverseTelegramNotifier()
     loy_interval = notifier.tg_cfg.get("check_interval_seconds", 30)
