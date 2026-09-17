@@ -196,34 +196,8 @@
 </head>
 <body class="bg-brand-50 text-stone-900 antialiased selection:bg-brand-300 selection:text-white pb-16 md:pb-0">
 
-  <!-- SDK oficial de Facebook (Carga diferida inteligente para máximo rendimiento móvil) -->
+  <!-- Contenedor SDK Facebook -->
   <div id="fb-root"></div>
-  <script>
-    function initFacebookLazy() {
-      if (window.FB_LOADED) return;
-      window.FB_LOADED = true;
-      const s = document.createElement("script");
-      s.async = true;
-      s.defer = true;
-      s.crossOrigin = "anonymous";
-      s.src = "https://connect.facebook.net/es_LA/sdk.js#xfbml=1&version=v20.0";
-      s.setAttribute("nonce", "VonneBoutiqueSdk");
-      document.body.appendChild(s);
-    }
-    if ("IntersectionObserver" in window) {
-      const fbObserver = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting) {
-          initFacebookLazy();
-          fbObserver.disconnect();
-        }
-      }, { rootMargin: "400px" });
-      const sec = document.getElementById("facebook-feed-section");
-      if (sec) fbObserver.observe(sec);
-      else setTimeout(initFacebookLazy, 3500);
-    } else {
-      setTimeout(initFacebookLazy, 3500);
-    }
-  </script>
 
   <!-- =========================================================================
        1. BARRA DE ANUNCIO SUPERIOR
@@ -433,8 +407,12 @@
             <!-- Marco Principal -->
             <div class="aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl border-4 border-white">
               <img 
-                src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1000&q=80" 
-                alt="Boutique de Ropa Saltillo"
+                src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=700&q=75" 
+                alt="Colección de Ropa para Mujer en Vonne Boutique Saltillo"
+                width="700"
+                height="933"
+                fetchpriority="high"
+                decoding="async"
                 class="w-full h-full object-cover"
               />
             </div>
@@ -651,7 +629,8 @@
             >
               <blockquote cite="https://www.facebook.com/VonneBoutique" class="fb-xfbml-parse-ignore w-full">
                 <iframe 
-                  src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2FVonneBoutique&tabs=timeline&width=500&height=620&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true&appId" 
+                  id="fb-iframe-embed"
+                  data-src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2FVonneBoutique&tabs=timeline&width=500&height=620&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true&appId" 
                   width="100%" 
                   height="620" 
                   style="border:none;overflow:hidden;min-height:580px;" 
@@ -660,6 +639,7 @@
                   allowfullscreen="true" 
                   allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
                   title="Feed de Facebook Vonne Boutique Saltillo"
+                  loading="lazy"
                 ></iframe>
               </blockquote>
             </div>
@@ -859,6 +839,10 @@
               <img 
                 src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=600&q=80" 
                 alt="Tienda de ropa mujer Saltillo" 
+                loading="lazy"
+                decoding="async"
+                width="400"
+                height="500"
                 class="w-full h-full object-cover"
               />
             </div>
@@ -866,6 +850,10 @@
               <img 
                 src="https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&w=600&q=80" 
                 alt="Boutique en Saltillo Coahuila" 
+                loading="lazy"
+                decoding="async"
+                width="400"
+                height="500"
                 class="w-full h-full object-cover"
               />
             </div>
@@ -1299,7 +1287,7 @@
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 p-6 sm:p-8">
         <div class="aspect-[3/4] rounded-2xl overflow-hidden bg-stone-100 relative">
-          <img id="qv-image" src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&q=80" alt="Prenda de moda en Vonne Boutique Saltillo" class="w-full h-full object-cover" />
+          <img id="qv-image" src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&q=80" alt="Prenda de moda en Vonne Boutique Saltillo" loading="lazy" decoding="async" class="w-full h-full object-cover" />
           <span id="qv-badge" class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold badge-gold shadow-sm"></span>
         </div>
 
@@ -1512,9 +1500,9 @@
   </div>
 
   <!-- Datos de Catálogo Oficial (Sincronizado con Loyverse POS) -->
-  <script src="catalogo_data.js"></script>
+  <script src="catalogo_data.js" defer></script>
   <!-- Script Principal -->
-  <script src="app.js"></script>
+  <script src="app.js" defer></script>
 
   <!-- Script para el menú móvil -->
   <script>
@@ -1550,6 +1538,28 @@
     if (bagDrawer) {
       observer.observe(bagDrawer, { attributes: true, attributeFilter: ['class'] });
     }
+
+    // Carga perezosa bajo demanda del Feed de Facebook (Ahorra 5 MB de datos móviles)
+    document.addEventListener("DOMContentLoaded", () => {
+      const fbSec = document.getElementById("facebook-feed-section");
+      const fbIframe = document.getElementById("fb-iframe-embed");
+      if (!fbSec || !fbIframe) return;
+
+      if ("IntersectionObserver" in window) {
+        const obs = new IntersectionObserver((entries) => {
+          if (entries[0].isIntersecting) {
+            if (fbIframe.dataset.src) {
+              fbIframe.src = fbIframe.dataset.src;
+              fbIframe.removeAttribute("data-src");
+            }
+            obs.disconnect();
+          }
+        }, { rootMargin: "300px" });
+        obs.observe(fbSec);
+      } else {
+        fbIframe.src = fbIframe.dataset.src;
+      }
+    });
   </script>
 
 </body>
