@@ -10,7 +10,7 @@
 [[headers]]
   for = "/app.js"
   [headers.values]
-    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+    Cache-Control = "public, max-age=31536000, immutable"
 
 # Evitar que el navegador guarde en caché el inventario para que siempre esté al día
 [[headers]]
