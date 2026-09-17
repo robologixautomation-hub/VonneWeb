@@ -1346,7 +1346,7 @@
   <!-- =========================================================================
        15. DRAWER SLIDE-OVER DE BOLSA / CARRITO DE APARTADO
        ========================================================================= -->
-  <div id="bag-drawer" class="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white shadow-2xl border-l border-brand-200 transform translate-x-full transition-transform duration-300 flex flex-col">
+  <div id="bag-drawer" style="transform: translateX(100%);" class="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white shadow-2xl border-l border-brand-200 transform translate-x-full transition-transform duration-300 flex flex-col">
     <div class="p-5 border-b border-stone-200 flex items-center justify-between bg-stone-50">
       <div class="flex items-center gap-2">
         <i class="fas fa-shopping-bag text-brand-700"></i>
@@ -1355,6 +1355,7 @@
       <button 
         type="button" 
         id="close-bag-btn"
+        onclick="closeBagDrawer()"
         class="w-8 h-8 rounded-full bg-stone-200/70 hover:bg-stone-300 text-stone-700 flex items-center justify-center transition"
         aria-label="Cerrar bolsa de apartado"
       >
@@ -1407,7 +1408,7 @@
     </div>
   </div>
 
-  <div id="bag-drawer-backdrop" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 hidden transition-opacity"></div>
+  <div id="bag-drawer-backdrop" onclick="closeBagDrawer()" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 hidden transition-opacity"></div>
 
   <!-- =========================================================================
        16. MODAL DE CONFIGURACIÓN DE GOOGLE DRIVE / SHEETS
