@@ -653,7 +653,7 @@ function askCurrentModalWhatsApp() {
   const activeSizeBtn = document.querySelector(".qv-size-btn.active");
   const chosenSize = activeSizeBtn ? activeSizeBtn.dataset.size : selectedProductForModal.sizes[0];
 
-  const text = `¡Hola Vonne Boutique! Me interesa la prenda: *${selectedProductForModal.name}* (Código: ${selectedProductForModal.code}) en Talla *${chosenSize}* ($${selectedProductForModal.price} MXN). ¿Tienen disponibilidad en su sucursal de Plaza La Fragua en Saltillo?`;
+  const text = `¡Hola Vonne Boutique! 👋 Me interesa la prenda *${selectedProductForModal.name}* (Código: ${selectedProductForModal.code}) en Talla *${chosenSize}* ($${selectedProductForModal.price} MXN). ¿La tienen en perchero hoy para pasar a probármela a su tienda de Plaza La Fragua?`;
   window.open(`https://wa.me/${BOUTIQUE_CONFIG.phone}?text=${encodeURIComponent(text)}`, '_blank');
 }
 
@@ -661,7 +661,7 @@ function askDirectWhatsApp(productId) {
   const product = PRODUCTS.find(p => p.id === productId);
   if (!product) return;
 
-  const text = `¡Hola Vonne Boutique! Me encantó la prenda: *${product.name}* (Código: ${product.code}) que vi en su página web. ¿Sigue disponible en su tienda de Plaza La Fragua?`;
+  const text = `¡Hola Vonne Boutique! 👋 Vi la prenda *${product.name}* en su página web ($${product.price} MXN). ¿La tienen disponible en perchero hoy en Plaza La Fragua para pasar a verla?`;
   window.open(`https://wa.me/${BOUTIQUE_CONFIG.phone}?text=${encodeURIComponent(text)}`, '_blank');
 }
 
@@ -676,112 +676,98 @@ function addItemToBag(product, size) {
   } else {
     shoppingBag.push({
       id: product.id,
-      code: product.code,
       name: product.name,
+      code: product.code,
       price: product.price,
-      image: product.image,
       size: size,
+      image: product.image,
       quantity: 1
     });
   }
 
-  saveBag();
-  updateBagUI();
+  updateBagBadge();
+  renderBagItems();
+  saveBagToLocalStorage();
 }
 
-function updateBagQuantity(index, delta) {
+function removeItemFromBag(index) {
+  shoppingBag.splice(index, 1);
+  updateBagBadge();
+  renderBagItems();
+  saveBagToLocalStorage();
+}
+
+function changeBagItemQuantity(index, delta) {
   if (!shoppingBag[index]) return;
   shoppingBag[index].quantity += delta;
-
   if (shoppingBag[index].quantity <= 0) {
-    shoppingBag.splice(index, 1);
+    removeItemFromBag(index);
+    return;
   }
-
-  saveBag();
-  updateBagUI();
+  updateBagBadge();
+  renderBagItems();
+  saveBagToLocalStorage();
 }
 
-function removeBagItem(index) {
-  shoppingBag.splice(index, 1);
-  saveBag();
-  updateBagUI();
-}
-
-function clearBag() {
-  shoppingBag = [];
-  saveBag();
-  updateBagUI();
-}
-
-function saveBag() {
-  localStorage.setItem("vonne_boutique_bag", JSON.stringify(shoppingBag));
-}
-
-function updateBagUI() {
-  const badges = document.querySelectorAll(".bag-count-badge");
-  const totalItems = shoppingBag.reduce((sum, item) => sum + item.quantity, 0);
-
-  badges.forEach(badge => {
-    badge.textContent = totalItems;
-    if (totalItems > 0) {
-      badge.classList.remove("hidden");
+function updateBagBadge() {
+  const totalCount = shoppingBag.reduce((sum, item) => sum + item.quantity, 0);
+  const badges = document.querySelectorAll(".bag-badge-count");
+  badges.forEach(b => {
+    b.textContent = totalCount;
+    if (totalCount > 0) {
+      b.classList.remove("hidden");
     } else {
-      badge.classList.add("hidden");
+      b.classList.add("hidden");
     }
   });
+}
 
-  const bagItemsContainer = document.getElementById("bag-items-list");
-  const bagTotalEl = document.getElementById("bag-total-amount");
-  const bagFooter = document.getElementById("bag-footer");
-  const bagEmptyState = document.getElementById("bag-empty-state");
+function renderBagItems() {
+  const container = document.getElementById("bag-items-list");
+  const emptyState = document.getElementById("bag-empty-state");
+  const footer = document.getElementById("bag-footer");
+  const totalDisplay = document.getElementById("bag-total-amount");
 
-  if (!bagItemsContainer) return;
+  if (!container) return;
 
   if (shoppingBag.length === 0) {
-    bagItemsContainer.innerHTML = "";
-    if (bagEmptyState) bagEmptyState.classList.remove("hidden");
-    if (bagFooter) bagFooter.classList.add("hidden");
+    container.innerHTML = "";
+    if (emptyState) emptyState.classList.remove("hidden");
+    if (footer) footer.classList.add("hidden");
     return;
   }
 
-  if (bagEmptyState) bagEmptyState.classList.add("hidden");
-  if (bagFooter) bagFooter.classList.remove("hidden");
+  if (emptyState) emptyState.classList.add("hidden");
+  if (footer) footer.classList.remove("hidden");
 
   let totalMoney = 0;
-
-  bagItemsContainer.innerHTML = shoppingBag.map((item, index) => {
-    const itemTotal = item.price * item.quantity;
-    totalMoney += itemTotal;
+  container.innerHTML = shoppingBag.map((item, index) => {
+    const subtotal = item.price * item.quantity;
+    totalMoney += subtotal;
 
     return `
-      <div class="flex gap-4 p-3.5 bg-stone-50 rounded-2xl border border-stone-200/80 items-center">
-        <img src="${item.image}" alt="${item.name}" class="w-16 h-20 object-cover rounded-xl shrink-0" onerror="this.src='https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=800&q=80';" />
+      <div class="flex items-center gap-3 p-3 bg-stone-50 rounded-2xl border border-stone-100">
+        <img src="${item.image}" alt="${item.name}" class="w-16 h-20 object-cover rounded-xl bg-stone-200" onerror="this.src='https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&q=80'" />
         <div class="flex-1 min-w-0">
-          <div class="flex justify-between items-start">
-            <h4 class="text-sm font-medium text-stone-800 truncate font-serif-luxury text-base">${item.name}</h4>
-            <button onclick="removeBagItem(${index})" class="text-stone-400 hover:text-red-500 transition ml-2">
-              <i class="fas fa-trash-alt text-xs"></i>
-            </button>
+          <h4 class="text-xs font-bold text-stone-900 truncate">${item.name}</h4>
+          <p class="text-[11px] text-stone-500">Talla: <span class="font-semibold text-stone-800">${item.size}</span> • $${item.price} c/u</p>
+          
+          <div class="flex items-center gap-2 mt-2">
+            <button onclick="changeBagItemQuantity(${index}, -1)" class="w-6 h-6 rounded-lg bg-white border border-stone-200 text-stone-600 flex items-center justify-center text-xs hover:bg-stone-100 font-bold">-</button>
+            <span class="text-xs font-bold text-stone-800">${item.quantity}</span>
+            <button onclick="changeBagItemQuantity(${index}, 1)" class="w-6 h-6 rounded-lg bg-white border border-stone-200 text-stone-600 flex items-center justify-center text-xs hover:bg-stone-100 font-bold">+</button>
           </div>
-          <div class="text-xs text-stone-500 mt-0.5">
-            <span>Talla: <strong class="text-stone-800">${item.size}</strong></span> • 
-            <span class="font-mono text-[11px]">${item.code}</span>
-          </div>
-          <div class="flex justify-between items-center mt-2.5">
-            <div class="flex items-center gap-2 border border-stone-200 bg-white rounded-lg px-2 py-0.5">
-              <button onclick="updateBagQuantity(${index}, -1)" class="text-stone-500 hover:text-stone-900 font-bold px-1 text-sm">-</button>
-              <span class="text-xs font-semibold text-stone-800 min-w-[12px] text-center">${item.quantity}</span>
-              <button onclick="updateBagQuantity(${index}, 1)" class="text-stone-500 hover:text-stone-900 font-bold px-1 text-sm">+</button>
-            </div>
-            <span class="text-sm font-bold text-stone-900">$${itemTotal} MXN</span>
-          </div>
+        </div>
+        <div class="text-right">
+          <span class="text-xs font-bold text-stone-900 block">$${subtotal}</span>
+          <button onclick="removeItemFromBag(${index})" class="text-stone-400 hover:text-red-600 text-xs mt-2 transition" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
         </div>
       </div>
     `;
   }).join("");
 
-  if (bagTotalEl) {
-    bagTotalEl.textContent = `$${totalMoney} MXN`;
+  if (totalDisplay) {
+    totalDisplay.textContent = `$${totalMoney} MXN`;
   }
 }
 
@@ -796,17 +782,16 @@ function checkoutViaWhatsApp() {
   }).join("\n\n");
 
   const message = 
-`¡Hola *Vonne Boutique Saltillo*! 👋✨
-Quisiera consultar y apartar las siguientes prendas que seleccioné desde su página web:
+`¡Hola *Vonne Boutique*! 👋✨
+Vi estas prendas en su página web y quisiera confirmar si las tienen en perchero hoy para pasar a probármelas a Plaza La Fragua:
 
 ${itemsText}
 
 ━━━━━━━━━━━━━━━━━━━━
-*Total Estimado:* $${totalMoney} MXN
+*Total:* $${totalMoney} MXN
 ━━━━━━━━━━━━━━━━━━━━
 
-¿Tienen disponibilidad en su sucursal de Plaza La Fragua (José María La Fragua, Saltillo)?
-¿Me podrían indicar los pasos para apartado o entrega? ¡Muchas gracias!`;
+¿En qué horario me pueden atender hoy en la boutique? ¡Muchas gracias!`;
 
   window.open(`https://wa.me/${BOUTIQUE_CONFIG.phone}?text=${encodeURIComponent(message)}`, '_blank');
 }
