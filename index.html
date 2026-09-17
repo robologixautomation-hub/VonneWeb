@@ -208,17 +208,47 @@
     }
   </script>
 
-  <!-- FontAwesome Íconos -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Google Fonts Direct Link (Non-blocking para Core Web Vitals) -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" /></noscript>
+
+  <!-- FontAwesome Íconos (Asincrónico no bloqueante) -->
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" /></noscript>
 
   <!-- Estilos Personalizados -->
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body class="bg-brand-50 text-stone-900 antialiased selection:bg-brand-300 selection:text-white pb-16 md:pb-0">
 
-  <!-- SDK oficial de Facebook para inserciones -->
+  <!-- SDK oficial de Facebook (Carga diferida inteligente para máximo rendimiento móvil) -->
   <div id="fb-root"></div>
-  <script async defer crossorigin="anonymous" src="https://connect.facebook.net/es_LA/sdk.js#xfbml=1&version=v20.0" nonce="VonneBoutiqueSdk"></script>
+  <script>
+    function initFacebookLazy() {
+      if (window.FB_LOADED) return;
+      window.FB_LOADED = true;
+      const s = document.createElement("script");
+      s.async = true;
+      s.defer = true;
+      s.crossOrigin = "anonymous";
+      s.src = "https://connect.facebook.net/es_LA/sdk.js#xfbml=1&version=v20.0";
+      s.setAttribute("nonce", "VonneBoutiqueSdk");
+      document.body.appendChild(s);
+    }
+    if ("IntersectionObserver" in window) {
+      const fbObserver = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          initFacebookLazy();
+          fbObserver.disconnect();
+        }
+      }, { rootMargin: "400px" });
+      const sec = document.getElementById("facebook-feed-section");
+      if (sec) fbObserver.observe(sec);
+      else setTimeout(initFacebookLazy, 3500);
+    } else {
+      setTimeout(initFacebookLazy, 3500);
+    }
+  </script>
 
   <!-- =========================================================================
        1. BARRA DE ANUNCIO SUPERIOR
@@ -298,6 +328,7 @@
             type="button"
             class="open-bag-btn relative p-2.5 rounded-xl bg-stone-900 text-white hover:bg-stone-800 transition flex items-center gap-2 shadow-sm"
             title="Ver tu bolsa de prendas"
+            aria-label="Ver bolsa de apartado de prendas"
           >
             <i class="fas fa-shopping-bag text-base"></i>
             <span class="hidden sm:inline text-xs font-medium">Bolsa</span>
@@ -311,7 +342,7 @@
             type="button" 
             id="mobile-menu-btn"
             class="md:hidden p-2.5 rounded-xl text-stone-700 hover:bg-stone-100 transition"
-            aria-label="Abrir menú"
+            aria-label="Abrir menú de navegación"
           >
             <i class="fas fa-bars text-lg"></i>
           </button>
@@ -349,6 +380,9 @@
       </div>
     </div>
   </header>
+
+  <!-- Contenedor Principal (Accesibilidad Landmark) -->
+  <main id="main-content">
 
   <!-- =========================================================================
        3. HERO SECTION (EDITORIAL BOUTIQUE)
@@ -471,7 +505,7 @@
           <div class="w-12 h-12 rounded-2xl bg-brand-50 text-brand-700 flex items-center justify-center mb-3">
             <i class="fas fa-store text-lg"></i>
           </div>
-          <h4 class="text-sm font-semibold text-stone-900">Plaza La Fragua</h4>
+          <p class="text-sm font-semibold text-stone-900">Plaza La Fragua</p>
           <p class="text-xs text-stone-500 mt-1">Ubicación céntrica con estacionamiento</p>
         </div>
 
@@ -479,7 +513,7 @@
           <div class="w-12 h-12 rounded-2xl bg-brand-50 text-brand-700 flex items-center justify-center mb-3">
             <i class="fas fa-water text-lg"></i>
           </div>
-          <h4 class="text-sm font-semibold text-stone-900">Trajes de Baño</h4>
+          <p class="text-sm font-semibold text-stone-900">Trajes de Baño</p>
           <p class="text-xs text-stone-500 mt-1">Línea de playa, bikinis y enterizos todo el año</p>
         </div>
 
@@ -487,7 +521,7 @@
           <div class="w-12 h-12 rounded-2xl bg-brand-50 text-brand-700 flex items-center justify-center mb-3">
             <i class="fas fa-hand-holding-heart text-lg"></i>
           </div>
-          <h4 class="text-sm font-semibold text-stone-900">Sistema de Apartado</h4>
+          <p class="text-sm font-semibold text-stone-900">Sistema de Apartado</p>
           <p class="text-xs text-stone-500 mt-1">Aparta tu outfit y liquídalo cómodamente</p>
         </div>
 
@@ -495,7 +529,7 @@
           <div class="w-12 h-12 rounded-2xl bg-brand-50 text-brand-700 flex items-center justify-center mb-3">
             <i class="fas fa-sync text-lg"></i>
           </div>
-          <h4 class="text-sm font-semibold text-stone-900">Sincronización en Vivo</h4>
+          <p class="text-sm font-semibold text-stone-900">Sincronización en Vivo</p>
           <p class="text-xs text-stone-500 mt-1">Inventario actualizado con tienda física</p>
         </div>
 
@@ -1121,6 +1155,7 @@
 
     </div>
   </section>
+  </main>
 
   <!-- =========================================================================
        12. PIE DE PÁGINA (FOOTER)
@@ -1241,6 +1276,7 @@
     <button 
       type="button" 
       class="open-bag-btn flex flex-col items-center gap-1 text-stone-700 relative"
+      aria-label="Ver bolsa de apartado"
     >
       <i class="fas fa-shopping-bag text-brand-900 text-lg"></i>
       <span class="text-[10px] font-semibold">Bolsa</span>
@@ -1252,6 +1288,7 @@
     <a 
       href="tel:+528444551868" 
       class="flex flex-col items-center gap-1 text-stone-700 hover:text-brand-900 transition"
+      aria-label="Llamar a Vonne Boutique por teléfono"
     >
       <i class="fas fa-phone text-stone-800 text-lg"></i>
       <span class="text-[10px] font-semibold">Llamar</span>
@@ -1270,16 +1307,17 @@
   </a>
 
   <!-- =========================================================================
-       14. MODAL DE VISTA RÁPIDA (QUICK VIEW)
+       14. MODAL VISTA RÁPIDA DE PRENDA (QUICK VIEW)
        ========================================================================= -->
   <div id="quickview-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-    <div id="quickview-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"></div>
+    <div id="quickview-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
 
-    <div class="relative bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto z-10 shadow-2xl border border-stone-200 animate-fade-in">
+    <div class="relative bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto z-10 shadow-2xl animate-fade-in border border-brand-200">
       <button 
         type="button" 
         id="close-quickview-btn"
         class="absolute top-4 right-4 z-20 w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center transition"
+        aria-label="Cerrar vista rápida"
       >
         <i class="fas fa-times"></i>
       </button>
@@ -1347,6 +1385,7 @@
         type="button" 
         id="close-bag-btn"
         class="w-8 h-8 rounded-full bg-stone-200/70 hover:bg-stone-300 text-stone-700 flex items-center justify-center transition"
+        aria-label="Cerrar bolsa de apartado"
       >
         <i class="fas fa-times text-xs"></i>
       </button>

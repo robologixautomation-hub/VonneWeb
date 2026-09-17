@@ -1,6 +1,17 @@
 [build]
   publish = "."
 
+# Caché de alto rendimiento para estilos y scripts estáticos
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/app.js"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+
 # Evitar que el navegador guarde en caché el inventario para que siempre esté al día
 [[headers]]
   for = "/catalogo_data.js"
