@@ -22,6 +22,7 @@ import json
 import urllib.request
 import urllib.parse
 import urllib.error
+import re
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 from loyverse_assistant import LoyverseAssistant
@@ -76,6 +77,17 @@ def loyverse_api_get(endpoint, token):
     with urllib.request.urlopen(req, timeout=20) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
+def format_for_telegram(text):
+    if not text:
+        return ""
+    # Convert markdown bold **text** to <b>text</b>
+    t = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', text)
+    # Convert markdown bullet * to •
+    t = re.sub(r'(?m)^\*\s+', '• ', t)
+    # Convert markdown code `text` to <code>text</code>
+    t = re.sub(r'`([^`]+)`', r'<code>\1</code>', t)
+    return t
+
 def send_telegram(bot_token, chat_id, text, parse_mode="HTML"):
     if not bot_token or not chat_id:
         print("[AVISO] Telegram no configurado (bot_token o chat_id vacíos).")
@@ -88,12 +100,15 @@ def send_telegram(bot_token, chat_id, text, parse_mode="HTML"):
     else:
         targets = [chat_id]
 
+    # Convert common markdown if sending as HTML
+    formatted_text = format_for_telegram(text) if parse_mode == "HTML" else text
+
     all_ok = True
     for target in targets:
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         payload = {
             "chat_id": target,
-            "text": text,
+            "text": formatted_text,
             "parse_mode": parse_mode,
             "disable_web_page_preview": True
         }
@@ -107,6 +122,19 @@ def send_telegram(bot_token, chat_id, text, parse_mode="HTML"):
         except urllib.error.HTTPError as e:
             err_body = e.read().decode("utf-8", errors="replace")
             print(f"[ERROR Telegram ({target})] HTTP {e.code}: {err_body}")
+            # Si falló por formato HTML, reintentar sin formato para garantizar entrega
+            if parse_mode:
+                try:
+                    payload["text"] = text
+                    payload["parse_mode"] = None
+                    req_plain = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers={"Content-Type": "application/json"})
+                    with urllib.request.urlopen(req_plain, timeout=15) as resp_plain:
+                        res_plain = json.loads(resp_plain.read().decode("utf-8"))
+                        if res_plain.get("ok", False):
+                            print(f"[Telegram ({target})] Reintento como texto plano exitoso.")
+                            continue
+                except Exception as e_plain:
+                    print(f"[Telegram ({target})] Falló reintento plano: {e_plain}")
             all_ok = False
         except Exception as e:
             print(f"[ERROR Telegram ({target})] Error de conexión: {e}")

@@ -1,0 +1,2 @@
+# Vonne Boutique Telegram Bot
+# Utiliza la biblioteca estándar de Python (urllib, json, re, datetime, etc.)

@@ -38,6 +38,14 @@ DAYS_ES = {
     3: "Jueves", 4: "Viernes", 5: "Sábado", 6: "Domingo"
 }
 
+MONTHS_NAME_TO_NUM = {
+    "enero": 1, "febrero": 2, "marzo": 3, "abril": 4,
+    "mayo": 5, "junio": 6, "julio": 7, "agosto": 8,
+    "septiembre": 9, "sept": 9, "sep": 9, "setiembre": 9,
+    "octubre": 10, "oct": 10, "noviembre": 11, "nov": 11,
+    "diciembre": 12, "dic": 12
+}
+
 def format_money(val):
     try:
         v = float(val)
@@ -319,6 +327,139 @@ class LoyverseAssistant:
         )
 
     # -------------------------------------------------------------------------
+    # Reporte de Ventas por Rango de Fechas Personalizado
+    # -------------------------------------------------------------------------
+    def get_date_range_sales_summary(self, start_dt, end_dt, label=None):
+        s_loc = datetime(start_dt.year, start_dt.month, start_dt.day, 0, 0, 0, tzinfo=self.tz)
+        e_loc = datetime(end_dt.year, end_dt.month, end_dt.day, 23, 59, 59, tzinfo=self.tz)
+
+        s_utc = s_loc.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        e_utc = e_loc.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        receipts = []
+        cursor = None
+        while True:
+            url = f"receipts?created_at_min={s_utc}&created_at_max={e_utc}&limit=250"
+            if cursor:
+                url += f"&cursor={cursor}"
+            try:
+                data = self._api_get(url)
+                batch = data.get("receipts", [])
+                receipts.extend(batch)
+                cursor = data.get("cursor")
+                if not cursor or len(batch) == 0:
+                    break
+            except Exception as e:
+                print(f"[ERROR] Error consultando rango de recibos: {e}")
+                break
+
+        sales_receipts = [r for r in receipts if r.get("receipt_type") == "SALE" and not r.get("cancelled_at")]
+        total_money = sum(r.get("total_money", 0.0) for r in sales_receipts)
+        total_tickets = len(sales_receipts)
+
+        items_agg = defaultdict(int)
+        payments_agg = defaultdict(float)
+        employees_agg = defaultdict(float)
+
+        for r in sales_receipts:
+            for it in r.get("line_items", []):
+                items_agg[it.get("item_name", "Prenda")] += it.get("quantity", 1)
+            for p in r.get("payments", []):
+                p_name = p.get("name") or self.payment_types_cache.get(p.get("payment_type_id"), "Efectivo")
+                payments_agg[p_name] += p.get("money_amount", 0.0)
+            emp_name = self.employees_cache.get(r.get("employee_id"), "Vonne Boutique")
+            employees_agg[emp_name] += r.get("total_money", 0.0)
+
+        total_pieces = sum(items_agg.values())
+        avg_ticket = (total_money / total_tickets) if total_tickets > 0 else 0.0
+
+        s_m = MONTHS_ES.get(start_dt.month, "")
+        e_m = MONTHS_ES.get(end_dt.month, "")
+        if not label:
+            if start_dt.month == end_dt.month and start_dt.year == end_dt.year:
+                label = f"Del {start_dt.day} al {end_dt.day} de {e_m}, {end_dt.year}"
+            else:
+                label = f"Del {start_dt.day} de {s_m} al {end_dt.day} de {e_m}, {end_dt.year}"
+
+        pay_lines = [f"• <b>{k}:</b> {format_money(v)}" for k, v in sorted(payments_agg.items(), key=lambda x: x[1], reverse=True)]
+        pay_str = "\n".join(pay_lines) if pay_lines else "• Sin cobros registrados"
+
+        emp_lines = [f"• <b>{k}:</b> {format_money(v)}" for k, v in sorted(employees_agg.items(), key=lambda x: x[1], reverse=True)]
+        emp_str = "\n".join(emp_lines) if emp_lines else "• General"
+
+        top_items = sorted(items_agg.items(), key=lambda x: x[1], reverse=True)[:5]
+        top_lines = [f"• {qty}x <b>{name}</b>" for name, qty in top_items]
+        top_str = "\n".join(top_lines) if top_lines else "• Sin prendas"
+
+        return (
+            f"📊 <b>REPORTE DE VENTAS ({label})</b>\n"
+            f"🏪 <b>Vonne Boutique Saltillo</b>\n\n"
+            f"💰 <b>Ventas Totales:</b> <b>{format_money(total_money)}</b>\n"
+            f"🎟️ <b>Tickets Cobrados:</b> {total_tickets}\n"
+            f"👗 <b>Prendas Vendidas:</b> {total_pieces} piezas\n"
+            f"🎯 <b>Ticket Promedio:</b> {format_money(avg_ticket)}\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"💳 <b>FORMAS DE PAGO:</b>\n"
+            f"{pay_str}\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"👤 <b>VENTAS POR COLABORADORA:</b>\n"
+            f"{emp_str}\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"🛍️ <b>PRENDAS MÁS VENDIDAS:</b>\n"
+            f"{top_str}\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"📍 <i>Plaza La Fragua, Saltillo</i>"
+        )
+
+    def parse_date_intent(self, text):
+        now_dt = datetime.now(self.tz)
+        clean = text.lower().strip()
+
+        # 1. Antier / anteayer
+        if re.search(r'\b(?:antier|anteayer)\b', clean):
+            target = now_dt - timedelta(days=2)
+            return {"type": "single_day", "date": target}
+
+        # 2. Rango de fechas: "del 1 de septiembre del 2026 al 17 de septiembre del 2026", "1 al 17 de septiembre"
+        m_range = re.search(r'\b(?:del?\s+)?(\d{1,2})(?:\s+de\s+([a-z]+))?(?:\s+del?\s+(\d{4}))?\s+al\s+(\d{1,2})(?:\s+de\s+([a-z]+))?(?:\s+del?\s+(\d{4}))?\b', clean)
+        if m_range:
+            d1 = int(m_range.group(1))
+            m1_str = m_range.group(2)
+            y1 = int(m_range.group(3)) if m_range.group(3) else None
+
+            d2 = int(m_range.group(4))
+            m2_str = m_range.group(5)
+            y2 = int(m_range.group(6)) if m_range.group(6) else None
+
+            m2 = MONTHS_NAME_TO_NUM.get(m2_str) if m2_str else now_dt.month
+            m1 = MONTHS_NAME_TO_NUM.get(m1_str) if m1_str else m2
+            year = y2 or y1 or now_dt.year
+
+            if m1 and m2:
+                try:
+                    start_dt = datetime(year, m1, d1)
+                    end_dt = datetime(year, m2, d2)
+                    return {"type": "date_range", "start": start_dt, "end": end_dt}
+                except Exception:
+                    pass
+
+        # 3. Día específico: "15 septiembre", "15 de septiembre", "del 14 de septiembre", "14 septiembre"
+        m_single = re.search(r'\b(?:del?\s+|el\s+)?(\d{1,2})\s+(?:de\s+)?([a-z]+)(?:\s+(?:de|del)?\s+(\d{4}))?\b', clean)
+        if m_single:
+            day = int(m_single.group(1))
+            m_str = m_single.group(2)
+            month = MONTHS_NAME_TO_NUM.get(m_str)
+            year = int(m_single.group(3)) if m_single.group(3) else now_dt.year
+            if month:
+                try:
+                    target = datetime(year, month, day)
+                    return {"type": "single_day", "date": target}
+                except Exception:
+                    pass
+
+        return None
+
+    # -------------------------------------------------------------------------
     # Top Prendas Más Vendidas
     # -------------------------------------------------------------------------
     def get_top_sellers(self, days=30):
@@ -358,6 +499,105 @@ class LoyverseAssistant:
 
         lines.append("\n📍 <i>Plaza La Fragua, Saltillo</i>")
         return "\n".join(lines)
+
+    # -------------------------------------------------------------------------
+    # Mejor Día de Ventas en un Mes / Periodo
+    # -------------------------------------------------------------------------
+    def get_best_sales_day(self, month=None, year=None, days=30):
+        now_dt = datetime.now(self.tz)
+        if month and year:
+            # Buscar en el mes especificado
+            import calendar
+            _, last_day = calendar.monthrange(year, month)
+            s_loc = datetime(year, month, 1, 0, 0, 0, tzinfo=self.tz)
+            e_loc = datetime(year, month, last_day, 23, 59, 59, tzinfo=self.tz)
+            label = f"{MONTHS_ES.get(month, 'Mes')}, {year}"
+        else:
+            # Últimos N días
+            e_loc = datetime(now_dt.year, now_dt.month, now_dt.day, 23, 59, 59, tzinfo=self.tz)
+            s_loc = e_loc - timedelta(days=days)
+            label = f"Últimos {days} días"
+
+        s_utc = s_loc.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        e_utc = e_loc.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        receipts = []
+        cursor = None
+        while True:
+            url = f"receipts?created_at_min={s_utc}&created_at_max={e_utc}&limit=250"
+            if cursor:
+                url += f"&cursor={cursor}"
+            try:
+                data = self._api_get(url)
+                batch = data.get("receipts", [])
+                receipts.extend(batch)
+                cursor = data.get("cursor")
+                if not cursor or not batch:
+                    break
+            except Exception as e:
+                return f"❌ Error consultando ventas del periodo: {e}"
+
+        sales = [r for r in receipts if r.get("receipt_type") == "SALE" and not r.get("cancelled_at")]
+        if not sales:
+            return f"ℹ️ No hay ventas registradas en {label}."
+
+        # Agrupar por día local
+        days_agg = defaultdict(lambda: {"total": 0.0, "tickets": 0, "piezas": 0})
+        for r in sales:
+            created = r.get("created_at", "")
+            try:
+                dt_utc = datetime.fromisoformat(created.replace("Z", "+00:00"))
+                dt_local = dt_utc.astimezone(self.tz)
+                key = dt_local.strftime("%Y-%m-%d")
+            except Exception:
+                key = created[:10]
+            days_agg[key]["total"] += r.get("total_money", 0.0)
+            days_agg[key]["tickets"] += 1
+            for it in r.get("line_items", []):
+                days_agg[key]["piezas"] += it.get("quantity", 1)
+
+        # Ordenar por ventas
+        sorted_days = sorted(days_agg.items(), key=lambda x: x[1]["total"], reverse=True)
+        best_key, best = sorted_days[0]
+
+        # Formatear fecha para display
+        try:
+            bd = datetime.fromisoformat(best_key)
+            day_name = DAYS_ES.get(bd.weekday(), "")
+            month_name = MONTHS_ES.get(bd.month, "")
+            best_date_str = f"{day_name} {bd.day} de {month_name}, {bd.year}"
+        except Exception:
+            best_date_str = best_key
+
+        # Top 5 días
+        top_lines = []
+        medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
+        for i, (dk, dv) in enumerate(sorted_days[:5]):
+            medal = medals[i] if i < len(medals) else "•"
+            try:
+                dd = datetime.fromisoformat(dk)
+                dn = DAYS_ES.get(dd.weekday(), "")
+                mn = MONTHS_ES.get(dd.month, "")
+                date_lbl = f"{dn} {dd.day} de {mn}"
+            except Exception:
+                date_lbl = dk
+            top_lines.append(
+                f"{medal} <b>{date_lbl}</b>: {format_money(dv['total'])} "
+                f"({dv['tickets']} tickets, {dv['piezas']} pzas)"
+            )
+
+        return (
+            f"📅 <b>MEJOR DÍA DE VENTAS — {label}</b>\n"
+            f"🏪 <b>Vonne Boutique Saltillo</b>\n\n"
+            f"🏆 <b>El día más vendido fue:</b>\n"
+            f"<b>{best_date_str}</b>\n"
+            f"💰 <b>{format_money(best['total'])}</b> en ventas\n"
+            f"🎟️ <b>{best['tickets']}</b> tickets cobrados\n"
+            f"👗 <b>{best['piezas']}</b> prendas vendidas\n\n"
+            f"📊 <b>Ranking de días — {label}:</b>\n"
+            + "\n".join(top_lines) +
+            f"\n\n📍 <i>Plaza La Fragua, Saltillo</i>"
+        )
 
     # -------------------------------------------------------------------------
     # Alertas de Inventario Bajo y Agotados
@@ -491,9 +731,11 @@ class LoyverseAssistant:
             item_sizes = [s.upper() for s in p.get("tallas", [])]
 
             score = 0
+            matched_count = 0
             for term in search_terms:
                 if term in text_norm:
                     score += 3 if term in normalize_text(p.get("nombre", "")) else 1
+                    matched_count += 1
 
             if target_size:
                 if target_size in item_sizes:
@@ -501,11 +743,21 @@ class LoyverseAssistant:
                 else:
                     score -= 4
 
-            if score > 0:
-                scored.append((score, p))
+            if score > 0 and matched_count > 0:
+                scored.append((score, matched_count, p))
 
-        scored.sort(key=lambda x: x[0], reverse=True)
-        matches = [p for s, p in scored if s > 0][:5]
+        if not scored:
+            return (
+                "🔍 <b>No encontré prendas con ese criterio en el catálogo.</b>\n\n"
+                "Intenta con palabras clave como <i>blazer, faja, vestido, chaleco, blusa, short</i> o el código de prenda (ej. <code>VB-10101</code>)."
+            )
+
+        # Si hay múltiples términos (ej. 'blazer' y 'rojo'), filtrar solo los productos que coincidan con la mayor cantidad de términos
+        max_matched = max(item[1] for item in scored)
+        strict_scored = [item for item in scored if item[1] == max_matched]
+        strict_scored.sort(key=lambda x: x[0], reverse=True)
+
+        matches = [p for s, m, p in strict_scored if s > 0][:5]
 
         if not matches:
             return (
@@ -614,6 +866,15 @@ class LoyverseAssistant:
                 return self.answer_stock_or_price(q)
             elif name == "consultar_ventas":
                 periodo = (args.get("periodo") or "hoy").lower()
+                d_intent = self.parse_date_intent(periodo)
+                if d_intent:
+                    if d_intent["type"] == "date_range":
+                        return self.get_date_range_sales_summary(d_intent["start"], d_intent["end"])
+                    elif d_intent["type"] == "single_day":
+                        target = d_intent["date"]
+                        stats = self.get_day_sales_summary(target)
+                        month_str = MONTHS_ES.get(target.month, "").upper()
+                        return self.format_sales_summary_msg(stats, title=f"VENTAS DEL {target.day} DE {month_str}")
                 if "ayer" in periodo:
                     yesterday = datetime.now(self.tz) - timedelta(days=1)
                     stats = self.get_day_sales_summary(yesterday)
@@ -627,6 +888,12 @@ class LoyverseAssistant:
                     return self.format_sales_summary_msg(stats, title="VENTAS DE HOY")
             elif name == "consultar_prendas_vendidas":
                 periodo = (args.get("periodo") or "hoy").lower()
+                d_intent = self.parse_date_intent(periodo)
+                if d_intent and d_intent["type"] == "single_day":
+                    target = d_intent["date"]
+                    stats = self.get_day_sales_summary(target)
+                    month_str = MONTHS_ES.get(target.month, "").upper()
+                    return self.format_items_list_msg(stats, title=f"PRENDAS VENDIDAS EL {target.day} DE {month_str}")
                 if "ayer" in periodo:
                     yesterday = datetime.now(self.tz) - timedelta(days=1)
                     stats = self.get_day_sales_summary(yesterday)
@@ -644,6 +911,14 @@ class LoyverseAssistant:
             elif name == "consultar_ticket":
                 num = str(args.get("numero", ""))
                 return self.search_ticket(num)
+            elif name == "consultar_mejor_dia":
+                mes_str = (args.get("mes") or "").lower()
+                month = MONTHS_NAME_TO_NUM.get(mes_str)
+                now_dt = datetime.now(self.tz)
+                if month:
+                    return self.get_best_sales_day(month=month, year=now_dt.year)
+                else:
+                    return self.get_best_sales_day(days=30)
         except Exception as e:
             return f"Error ejecutando consulta en Loyverse: {e}"
         return "Consulta completada."
@@ -651,7 +926,11 @@ class LoyverseAssistant:
     def ask_gemini(self, user_message):
         if not self.gemini_api_key:
             return None
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.gemini_api_key}"
+
+        headers = {
+            "Content-Type": "application/json",
+            "x-goog-api-key": self.gemini_api_key
+        }
 
         tools_def = [{
             "function_declarations": [
@@ -659,63 +938,73 @@ class LoyverseAssistant:
                     "name": "consultar_inventario",
                     "description": "Busca prendas en el catálogo de Vonne Boutique por nombre, categoría o talla, devolviendo existencias, precios y códigos.",
                     "parameters": {
-                        "type": "object",
+                        "type": "OBJECT",
                         "properties": {
-                            "termino": {"type": "string", "description": "Nombre o tipo de prenda (ej. blazer, vestido, chaleco)"},
-                            "talla": {"type": "string", "description": "Talla específica si se solicitó (CH, M, G, XL, XXL, etc.)"}
+                            "termino": {"type": "STRING", "description": "Nombre o tipo de prenda (ej. blazer, vestido, chaleco, blusa)"},
+                            "talla": {"type": "STRING", "description": "Talla específica si se solicitó (CH, M, G, XL, XXL, etc.)"}
                         }
                     }
                 },
                 {
                     "name": "consultar_ventas",
-                    "description": "Consulta el reporte de ventas de un período (hoy, ayer, semana, mes).",
+                    "description": "Consulta el reporte de ventas de un período (hoy, ayer, semana, mes, o una fecha/rango específico como '15 de septiembre' o 'del 1 al 17 de septiembre').",
                     "parameters": {
-                        "type": "object",
+                        "type": "OBJECT",
                         "properties": {
-                            "periodo": {"type": "string", "description": "Periodo a consultar: 'hoy', 'ayer', 'semana', 'mes'"}
+                            "periodo": {"type": "STRING", "description": "Periodo a consultar: 'hoy', 'ayer', 'semana', 'mes', '15 de septiembre', 'del 1 al 17 de septiembre'"}
                         },
                         "required": ["periodo"]
                     }
                 },
                 {
                     "name": "consultar_prendas_vendidas",
-                    "description": "Consulta la lista detallada de prendas que se vendieron en un período (hoy o ayer).",
+                    "description": "Consulta la lista detallada de prendas que se vendieron en un período o fecha (hoy, ayer, 15 de septiembre).",
                     "parameters": {
-                        "type": "object",
+                        "type": "OBJECT",
                         "properties": {
-                            "periodo": {"type": "string", "description": "'hoy' o 'ayer'"}
+                            "periodo": {"type": "STRING", "description": "'hoy', 'ayer', o fecha específica"}
                         }
                     }
                 },
                 {
                     "name": "consultar_caja",
                     "description": "Consulta el estado actual de la caja registradora, fondo inicial y efectivo.",
-                    "parameters": {"type": "object", "properties": {}}
+                    "parameters": {"type": "OBJECT", "properties": {}}
                 },
                 {
                     "name": "consultar_mas_vendidos",
                     "description": "Obtiene el ranking de las prendas más vendidas de la tienda.",
                     "parameters": {
-                        "type": "object",
+                        "type": "OBJECT",
                         "properties": {
-                            "dias": {"type": "integer", "description": "Número de días hacia atrás (ej. 7 o 30)"}
+                            "dias": {"type": "INTEGER", "description": "Número de días hacia atrás (ej. 7 o 30)"}
                         }
                     }
                 },
                 {
                     "name": "consultar_alertas_stock",
                     "description": "Obtiene la lista de prendas agotadas o con poco stock (<= 3 piezas) para resurtir.",
-                    "parameters": {"type": "object", "properties": {}}
+                    "parameters": {"type": "OBJECT", "properties": {}}
                 },
                 {
                     "name": "consultar_ticket",
                     "description": "Busca el detalle de un ticket o recibo de venta por su número o folio.",
                     "parameters": {
-                        "type": "object",
+                        "type": "OBJECT",
                         "properties": {
-                            "numero": {"type": "string", "description": "Número o folio del ticket"}
+                            "numero": {"type": "STRING", "description": "Número o folio del ticket"}
                         },
                         "required": ["numero"]
+                    }
+                },
+                {
+                    "name": "consultar_mejor_dia",
+                    "description": "Busca el día con más ventas dentro de un mes o periodo. Úsala cuando el usuario pregunte cuál fue el mejor día, el día que más se vendió, el día con mayor ingreso, el top de días, o similares.",
+                    "parameters": {
+                        "type": "OBJECT",
+                        "properties": {
+                            "mes": {"type": "STRING", "description": "Nombre del mes en español (enero, febrero, ..., septiembre, etc.). Deja vacío para los últimos 30 días."}
+                        }
                     }
                 }
             ]
@@ -723,67 +1012,88 @@ class LoyverseAssistant:
 
         system_instruction = {
             "parts": [{
-                "text": "Eres Vonne Assistant, el asistente ejecutivo de inteligencia artificial de Vonne Boutique en Plaza La Fragua, Saltillo, Coahuila. Tu función es responder de manera natural, conversacional y amigable a las dudas del equipo y dueña sobre la boutique, ventas, inventario, percheros y caja. Usa formato atractivo de Telegram con emojis, negritas y listas limpias. Si te preguntan algo sobre la tienda o mercancía, usa las herramientas disponibles para obtener datos 100% verídicos y exactos de Loyverse POS."
+                "text": (
+                    "Eres Vonne Assistant, el asistente ejecutivo de inteligencia artificial de Vonne Boutique en Plaza La Fragua, Saltillo, Coahuila.\n"
+                    "Tu función es responder de manera natural, conversacional, amigable y muy profesional a las dudas del equipo y dueña sobre la boutique, ventas, inventario, percheros y caja.\n"
+                    "Usa formato atractivo para Telegram con emojis y negritas <b>texto</b> o cursiva <i>texto</i>.\n"
+                    "Si te preguntan algo sobre la tienda o mercancía, usa las herramientas disponibles para consultar Loyverse POS y dar datos 100% verídicos y exactos.\n"
+                    "Si te saludan o preguntan cosas generales de la boutique, responde cálidamente."
+                )
             }]
         }
 
-        contents = [{"role": "user", "parts": [{"text": user_message}]}]
-        payload = {
-            "contents": contents,
-            "tools": tools_def,
-            "system_instruction": system_instruction
-        }
+        # Priorizar modelos Lite (15 RPM vs 5 RPM) para evitar Rate Limit 429
+        models = ["gemini-3.5-flash-lite", "gemini-3-flash-preview", "gemini-3.5-flash"]
+        for m in models:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent"
+            contents = [{"role": "user", "parts": [{"text": user_message}]}]
+            payload = {
+                "contents": contents,
+                "tools": tools_def,
+                "system_instruction": system_instruction
+            }
 
-        try:
-            req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers={"Content-Type": "application/json"})
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                res = json.loads(resp.read().decode("utf-8"))
+            try:
+                req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers)
+                with urllib.request.urlopen(req, timeout=20) as resp:
+                    res = json.loads(resp.read().decode("utf-8"))
 
-            candidate = res.get("candidates", [{}])[0]
-            content = candidate.get("content", {})
-            parts = content.get("parts", [])
+                candidate = res.get("candidates", [{}])[0]
+                content = candidate.get("content", {})
+                parts = content.get("parts", [])
 
-            for part in parts:
-                if "functionCall" in part:
-                    fc = part["functionCall"]
-                    fname = fc.get("name")
-                    fargs = fc.get("args", {})
+                for part in parts:
+                    if "functionCall" in part:
+                        fc = part["functionCall"]
+                        fname = fc.get("name")
+                        fargs = fc.get("args", {})
+                        call_id = fc.get("id")
 
-                    tool_res = self.execute_tool(fname, fargs)
+                        tool_res = self.execute_tool(fname, fargs)
 
-                    contents.append({"role": "model", "parts": [{"functionCall": fc}]})
-                    contents.append({
-                        "role": "function",
-                        "parts": [{
-                            "functionResponse": {
-                                "name": fname,
-                                "response": {"output": tool_res}
-                            }
-                        }]
-                    })
+                        contents.append(content)
+                        fn_resp = {
+                            "name": fname,
+                            "response": {"output": tool_res}
+                        }
+                        if call_id:
+                            fn_resp["id"] = call_id
 
-                    followup_payload = {
-                        "contents": contents,
-                        "tools": tools_def,
-                        "system_instruction": system_instruction
-                    }
+                        contents.append({
+                            "role": "function",
+                            "parts": [{
+                                "functionResponse": fn_resp
+                            }]
+                        })
 
-                    req2 = urllib.request.Request(url, data=json.dumps(followup_payload).encode("utf-8"), headers={"Content-Type": "application/json"})
-                    with urllib.request.urlopen(req2, timeout=15) as resp2:
-                        res2 = json.loads(resp2.read().decode("utf-8"))
+                        followup_payload = {
+                            "contents": contents,
+                            "tools": tools_def
+                        }
 
-                    c2 = res2.get("candidates", [{}])[0]
-                    parts2 = c2.get("content", {}).get("parts", [])
-                    for p2 in parts2:
-                        if "text" in p2:
-                            return p2["text"]
+                        req2 = urllib.request.Request(url, data=json.dumps(followup_payload).encode("utf-8"), headers=headers)
+                        with urllib.request.urlopen(req2, timeout=20) as resp2:
+                            res2 = json.loads(resp2.read().decode("utf-8"))
 
-                if "text" in part:
-                    return part["text"]
+                        c2 = res2.get("candidates", [{}])[0]
+                        parts2 = c2.get("content", {}).get("parts", [])
+                        for p2 in parts2:
+                            if "text" in p2:
+                                return p2["text"]
 
-        except Exception as e:
-            print(f"[AVISO Gemini] No se pudo procesar con IA: {e}")
-            return None
+                    if "text" in part:
+                        return part["text"]
+
+            except urllib.error.HTTPError as e:
+                if e.code == 429:
+                    print(f"[AVISO Gemini] Modelo {m} con cuota excedida (429), probando siguiente modelo...")
+                    continue
+                else:
+                    print(f"[AVISO Gemini] Error HTTP {e.code} en modelo {m}")
+                    continue
+            except Exception as e:
+                print(f"[AVISO Gemini] Error en modelo {m}: {e}")
+                continue
 
         return None
 
@@ -796,7 +1106,21 @@ class LoyverseAssistant:
         clean = re.sub(r'@\w+', '', clean).strip()
         norm = normalize_text(clean)
 
-        # 0. Si hay Gemini API configurada, delegar a Inteligencia Artificial Conversacional
+        # 0. Detección prioritaria de fechas o rangos de fechas (ej. "ventas del 15 septiembre", "del 1 al 17 de septiembre")
+        date_intent = self.parse_date_intent(clean)
+        if date_intent:
+            if date_intent["type"] == "date_range":
+                return self.get_date_range_sales_summary(date_intent["start"], date_intent["end"])
+            elif date_intent["type"] == "single_day":
+                target = date_intent["date"]
+                stats = self.get_day_sales_summary(target)
+                month_str = MONTHS_ES.get(target.month, "").upper()
+                if re.search(r'\b(?:prendas?|ropa|piezas?|articulos?|vendieron|vendio|salieron?)\b', norm):
+                    return self.format_items_list_msg(stats, title=f"PRENDAS VENDIDAS EL {target.day} DE {month_str}")
+                else:
+                    return self.format_sales_summary_msg(stats, title=f"VENTAS DEL {target.day} DE {month_str}")
+
+        # 1. Si hay Gemini API configurada, delegar a Inteligencia Artificial Conversacional
         if self.gemini_api_key:
             ai_reply = self.ask_gemini(text)
             if ai_reply:
@@ -847,10 +1171,30 @@ class LoyverseAssistant:
         if has_inv_word or has_garment_word:
             return self.answer_stock_or_price(clean)
 
-        # 9. Consultas relacionadas con HOY o ventas actuales (con límites de palabra exactos)
-        if re.search(r'\b(?:hoy|ahorita|llevamos|al momento|ventas?|vendidos?|como vamos|como va)\b', norm):
+        # 8b. Mejor día de ventas - detectar ANTES de consultas genéricas de ventas
+        is_best_day = bool(re.search(r'\b(?:mejor dia|dia que mas|mas vendimos|dia mas|mejor jornada|mas se vendio|maximo de ventas|record de ventas|cual dia|que dia fue)\b', norm))
+        if is_best_day:
+            # Detectar si menciona un mes específico
+            month_match = None
+            for m_name, m_num in MONTHS_NAME_TO_NUM.items():
+                if re.search(r'\b' + m_name + r'\b', norm):
+                    month_match = m_num
+                    break
+            now_dt = datetime.now(self.tz)
+            year = now_dt.year
+            if month_match:
+                return self.get_best_sales_day(month=month_match, year=year)
+            else:
+                return self.get_best_sales_day(days=30)
+
+        # 9. Consultas relacionadas con HOY o ventas actuales
+        # IMPORTANTE: Excluir frases comparativas como "más vendido", "qué se ha vendido", etc. que no son de hoy
+        is_today_query = bool(re.search(r'\b(?:hoy|ahorita|llevamos|al momento|como vamos|como va)\b', norm))
+        is_sales_query = bool(re.search(r'\bventas?\b', norm)) and not re.search(r'\b(?:mas|mejor|mayor|mayor|record|historico|cuando|cual dia|que dia)\b', norm)
+        is_sold_today = bool(re.search(r'\b(?:vendidos?)\b', norm)) and re.search(r'\bhoy\b', norm)
+        if is_today_query or is_sales_query or is_sold_today:
             stats = self.get_day_sales_summary()
-            if re.search(r'\b(?:prendas?|ropa|piezas?|articulos?|vendieron|vendio|salieron?)\b', norm):
+            if re.search(r'\b(?:prendas?|ropa|piezas?|articulos?|salieron?)\b', norm):
                 return self.format_items_list_msg(stats, title="PRENDAS VENDIDAS HOY")
             else:
                 return self.format_sales_summary_msg(stats, title="VENTAS DE HOY")
