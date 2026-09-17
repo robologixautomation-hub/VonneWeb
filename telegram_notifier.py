@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
 """
 Vonne Boutique Saltillo - Notificador Oficial de Loyverse POS en Telegram
-Monitorea eventos de caja y ventas en tiempo real:
-1. Nuevas Ventas / Tickets generados (prendas, precios, total, forma de pago)
-2. Cancelaciones / Reembolsos de tickets
-3. Apertura de caja (inicio de turno con fondo de caja)
-4. Cierre de caja (corte del día / Z-report con ventas brutas, netas, desglose de pagos y diferencia de efectivo)
+Funciones:
+1. Notificaciones automáticas cada 30s:
+   - Nuevas Ventas / Tickets generados
+   - Cancelaciones / Reembolsos
+   - Apertura de caja (inicio de turno y fondo inicial)
+   - Cierre de caja / Corte del día (Z-Report completo)
+2. Comandos interactivos en el grupo de Telegram (< 3s):
+   - /ventas o /hoy: Resumen de ventas, tickets, ingresos y prendas vendidas hoy
+   - /ayer: Resumen del día anterior para comparar
+   - /prendas: Lista detallada de todas las prendas vendidas hoy
+   - /caja: Estado actual de la caja y efectivo acumulado
+   - /ayuda: Menú de comandos disponibles
 """
 
 import os
@@ -16,10 +23,11 @@ import urllib.request
 import urllib.parse
 import urllib.error
 from datetime import datetime, timezone, timedelta
+from collections import defaultdict
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Soporte completo para pythonw (segundo plano sin consola) y consola Windows
+# Soporte para ejecución en segundo plano (pythonw) y consola
 LOG_PATH = os.path.join(BASE_DIR, "telegram_bot.log")
 if sys.stdout is None:
     sys.stdout = open(LOG_PATH, "a", encoding="utf-8", errors="replace", buffering=1)
@@ -30,6 +38,7 @@ if sys.stderr is None:
     sys.stderr = open(LOG_PATH, "a", encoding="utf-8", errors="replace", buffering=1)
 elif hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 LOYVERSE_CONFIG_PATH = os.path.join(BASE_DIR, "loyverse_config.json")
 TELEGRAM_CONFIG_PATH = os.path.join(BASE_DIR, "telegram_config.json")
 STATE_PATH = os.path.join(BASE_DIR, "telegram_state.json")
@@ -61,7 +70,7 @@ def loyverse_api_get(endpoint, token):
     url = f"https://api.loyverse.com/v1.0/{endpoint}"
     req = urllib.request.Request(url, headers={
         "Authorization": f"Bearer {token}",
-        "User-Agent": "VonneBoutiqueTelegramNotifier/1.0"
+        "User-Agent": "VonneBoutiqueTelegramNotifier/2.0"
     })
     with urllib.request.urlopen(req, timeout=20) as resp:
         return json.loads(resp.read().decode("utf-8"))
@@ -121,6 +130,17 @@ def format_money(val):
     except Exception:
         return f"${val} MXN"
 
+MONTHS_ES = {
+    1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
+    5: "Mayo", 6: "Junio", 7: "Julio", 8: "Agosto",
+    9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"
+}
+
+DAYS_ES = {
+    0: "Lunes", 1: "Martes", 2: "Miércoles",
+    3: "Jueves", 4: "Viernes", 5: "Sábado", 6: "Domingo"
+}
+
 class LoyverseTelegramNotifier:
     def __init__(self):
         self.loy_token = get_loyverse_token()
@@ -129,7 +149,8 @@ class LoyverseTelegramNotifier:
             "processed_receipt_ids": [],
             "processed_shift_ids": [],
             "known_open_shift_id": None,
-            "last_receipt_time": None
+            "last_receipt_time": None,
+            "last_update_id": 0
         })
         self.employees_cache = {}
         self.payment_types_cache = {}
@@ -169,7 +190,6 @@ class LoyverseTelegramNotifier:
         processed = set(self.state.get("processed_receipt_ids", []))
         new_processed = list(self.state.get("processed_receipt_ids", []))
 
-        # Si es la primera vez que se ejecuta y no hay historial guardado, sincronizamos sin disparar notificaciones masivas
         if not self.state.get("last_receipt_time") and receipts:
             for r in receipts:
                 new_processed.append(r["receipt_number"])
@@ -179,10 +199,9 @@ class LoyverseTelegramNotifier:
             print(f"ℹ️ Estado de recibos inicializado con {len(receipts)} tickets existentes.")
             return
 
-        # Procesar del más antiguo al más reciente
         for r in reversed(receipts):
             r_num = r.get("receipt_number")
-            r_type = r.get("receipt_type")  # SALE o REFUND
+            r_type = r.get("receipt_type")
             cancelled_at = r.get("cancelled_at")
 
             event_id = f"{r_num}_{r_type}_{'cancelled' if cancelled_at else 'ok'}"
@@ -193,7 +212,7 @@ class LoyverseTelegramNotifier:
             total = r.get("total_money", 0.0)
             receipt_time = format_iso_time(r.get("created_at") or r.get("receipt_date"), offset)
 
-            # Caso 1: Cancelación / Devolución
+            # Caso 1: Cancelación
             if cancelled_at or r_type == "REFUND":
                 if self.tg_cfg.get("notify_cancellations", True):
                     cancel_time = format_iso_time(cancelled_at or r.get("updated_at"), offset)
@@ -270,7 +289,6 @@ class LoyverseTelegramNotifier:
         processed_shifts = set(self.state.get("processed_shift_ids", []))
         known_open = self.state.get("known_open_shift_id")
 
-        # Inicialización de primer arranque
         if not processed_shifts and known_open is None:
             for s in shifts:
                 if s.get("closed_at"):
@@ -289,7 +307,7 @@ class LoyverseTelegramNotifier:
             closed_at = s.get("closed_at")
             start_cash = s.get("starting_cash", 0.0)
 
-            # Caso 1: Apertura de caja nueva
+            # Caso 1: Apertura
             if closed_at is None:
                 if known_open != shift_id:
                     self.state["known_open_shift_id"] = shift_id
@@ -309,7 +327,7 @@ class LoyverseTelegramNotifier:
                         if send_telegram(bot_token, chat_id, msg):
                             print(f"🔔 Notificación de apertura de caja enviada: {open_time_str}")
 
-            # Caso 2: Cierre de caja (Corte del día)
+            # Caso 2: Cierre
             else:
                 if shift_id not in processed_shifts:
                     processed_shifts.add(shift_id)
@@ -336,7 +354,6 @@ class LoyverseTelegramNotifier:
                         actual_cash = s.get("actual_cash", 0.0)
                         difference = actual_cash - expected_cash
 
-                        # Desglose de pagos por método
                         payments_summary = s.get("payments", [])
                         pay_lines = []
                         for pm in payments_summary:
@@ -345,7 +362,6 @@ class LoyverseTelegramNotifier:
                             pay_lines.append(f"• <b>{pm_name}:</b> {format_money(pm_amount)}")
                         payments_block = "\n".join(pay_lines) if pay_lines else f"• <b>Efectivo:</b> {format_money(cash_payments)}"
 
-                        # Indicador de diferencia
                         if abs(difference) < 0.01:
                             diff_badge = "✅ Cuadrado exacto (Sin diferencia)"
                         elif difference > 0:
@@ -382,8 +398,288 @@ class LoyverseTelegramNotifier:
                         if send_telegram(bot_token, chat_id, msg):
                             print(f"🔔 Notificación de corte de caja enviada: {close_time_str}")
 
+    # =========================================================================
+    # LÓGICA DE REPORTES INTERACTIVOS
+    # =========================================================================
+
+    def get_day_sales_summary(self, target_dt=None):
+        offset = self.tg_cfg.get("timezone_offset_hours", -6)
+        tz = timezone(timedelta(hours=offset))
+        if target_dt is None:
+            target_dt = datetime.now(tz)
+
+        start_local = datetime(target_dt.year, target_dt.month, target_dt.day, 0, 0, 0, tzinfo=tz)
+        end_local = start_local + timedelta(days=1)
+
+        start_utc = start_local.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        end_utc = end_local.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        day_name = DAYS_ES.get(target_dt.weekday(), "")
+        month_name = MONTHS_ES.get(target_dt.month, "")
+        human_date = f"{day_name} {target_dt.day} de {month_name}, {target_dt.year}"
+
+        url = f"receipts?created_at_min={start_utc}&created_at_max={end_utc}&limit=250"
+        try:
+            data = loyverse_api_get(url, self.loy_token)
+            receipts = data.get("receipts", [])
+        except Exception as e:
+            print(f"[ERROR] Error consultando recibos del día: {e}")
+            receipts = []
+
+        total_gross = 0.0
+        total_refunds = 0.0
+        ticket_count = 0
+        items_agg = defaultdict(lambda: {"qty": 0, "money": 0.0})
+        payments_agg = defaultdict(float)
+
+        for r in receipts:
+            r_type = r.get("receipt_type")
+            cancelled = bool(r.get("cancelled_at"))
+
+            if cancelled or r_type == "REFUND":
+                total_refunds += r.get("total_money", 0.0)
+                continue
+
+            if r_type == "SALE":
+                ticket_count += 1
+                total_gross += r.get("total_money", 0.0)
+
+                for it in r.get("line_items", []):
+                    name = it.get("item_name", "Prenda")
+                    q = it.get("quantity", 1)
+                    m = it.get("total_money", 0.0)
+                    items_agg[name]["qty"] += q
+                    items_agg[name]["money"] += m
+
+                for p in r.get("payments", []):
+                    p_name = p.get("name") or self.payment_types_cache.get(p.get("payment_type_id"), "Efectivo")
+                    p_amt = p.get("money_amount", 0.0)
+                    payments_agg[p_name] += p_amt
+
+        total_net = total_gross - total_refunds
+        total_pieces = sum(v["qty"] for v in items_agg.values())
+
+        return {
+            "date_human": human_date,
+            "ticket_count": ticket_count,
+            "total_gross": total_gross,
+            "total_net": total_net,
+            "total_refunds": total_refunds,
+            "total_pieces": total_pieces,
+            "items": items_agg,
+            "payments": payments_agg
+        }
+
+    def format_sales_summary_msg(self, stats, title="VENTAS DE HOY"):
+        date_str = stats["date_human"]
+        t_count = stats["ticket_count"]
+        net = stats["total_net"]
+        pieces = stats["total_pieces"]
+
+        if t_count == 0:
+            return (
+                f"📊 <b>{title} - Vonne Boutique</b>\n"
+                f"📅 <i>{date_str}</i>\n\n"
+                f"ℹ️ Aún no se registran tickets de venta en esta fecha.\n\n"
+                f"✨ <i>¡Excelente jornada de trabajo!</i>\n"
+                f"📍 <i>Plaza La Fragua, Saltillo</i>"
+            )
+
+        pay_lines = []
+        for p_name, p_amt in sorted(stats["payments"].items(), key=lambda x: x[1], reverse=True):
+            pay_lines.append(f"• <b>{p_name}:</b> {format_money(p_amt)}")
+        pay_block = "\n".join(pay_lines) if pay_lines else "• Efectivo: $0.00"
+
+        # Top prendas vendidas
+        items_lines = []
+        sorted_items = sorted(stats["items"].items(), key=lambda x: x[1]["qty"], reverse=True)
+        for name, d in sorted_items[:12]:
+            items_lines.append(f"• {d['qty']}x <b>{name}</b> ({format_money(d['money'])})")
+        if len(sorted_items) > 12:
+            remaining = sum(d['qty'] for _, d in sorted_items[12:])
+            items_lines.append(f"<i>... y {remaining} prendas más</i>")
+
+        items_block = "\n".join(items_lines) if items_lines else "• Sin prendas registradas"
+
+        return (
+            f"📊 <b>{title} - Vonne Boutique</b>\n"
+            f"📅 <i>{date_str}</i>\n\n"
+            f"💰 <b>VENTAS TOTALES:</b> <b>{format_money(net)}</b>\n"
+            f"🎟️ <b>Tickets Cobrados:</b> {t_count}\n"
+            f"👗 <b>Prendas Vendidas:</b> {pieces} piezas\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"💳 <b>FORMAS DE PAGO:</b>\n"
+            f"{pay_block}\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"🛍️ <b>PRENDAS VENDIDAS:</b>\n"
+            f"{items_block}\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"📍 <i>Plaza La Fragua, Saltillo</i>"
+        )
+
+    def format_items_list_msg(self, stats):
+        date_str = stats["date_human"]
+        pieces = stats["total_pieces"]
+        if pieces == 0:
+            return (
+                f"👗 <b>PRENDAS VENDIDAS HOY - Vonne Boutique</b>\n"
+                f"📅 <i>{date_str}</i>\n\n"
+                f"ℹ️ Aún no se registran prendas vendidas el día de hoy."
+            )
+
+        sorted_items = sorted(stats["items"].items(), key=lambda x: x[1]["qty"], reverse=True)
+        lines = []
+        for name, d in sorted_items:
+            lines.append(f"• <b>{d['qty']}x</b> {name} — {format_money(d['money'])}")
+
+        return (
+            f"👗 <b>PRENDAS VENDIDAS HOY ({pieces} piezas)</b>\n"
+            f"🏪 <b>Vonne Boutique Saltillo</b>\n"
+            f"📅 <i>{date_str}</i>\n\n"
+            + "\n".join(lines) + "\n\n"
+            f"📍 <i>Plaza La Fragua, Saltillo</i>"
+        )
+
+    def get_drawer_status_msg(self):
+        offset = self.tg_cfg.get("timezone_offset_hours", -6)
+        try:
+            data = loyverse_api_get("shifts?limit=3", self.loy_token)
+            shifts = data.get("shifts", [])
+        except Exception as e:
+            return f"❌ Error consultando el estado de caja: {e}"
+
+        if not shifts:
+            return "ℹ️ No hay registros recientes de turnos de caja en Loyverse."
+
+        # Buscar turno abierto
+        open_shift = next((s for s in shifts if s.get("closed_at") is None), None)
+
+        if open_shift:
+            emp = self.employees_cache.get(open_shift.get("employee_id"), "Vonne Boutique")
+            opened_at = format_iso_time(open_shift.get("opened_at"), offset)
+            start_cash = open_shift.get("starting_cash", 0.0)
+            cash_payments = open_shift.get("cash_payments", 0.0)
+            cash_refunds = open_shift.get("cash_refunds", 0.0)
+            paid_in = open_shift.get("paid_in", 0.0)
+            paid_out = open_shift.get("paid_out", 0.0)
+            expected_cash = open_shift.get("expected_cash", 0.0)
+
+            return (
+                f"💵 <b>ESTADO DE CAJA ACTUAL (Turno Abierto)</b>\n"
+                f"🏪 <b>Vonne Boutique Saltillo</b>\n\n"
+                f"👤 <b>Atendiendo:</b> {emp}\n"
+                f"🕐 <b>Apertura:</b> {opened_at}\n"
+                f"━━━━━━━━━━━━━━━━━━━━\n"
+                f"💵 <b>Fondo Inicial:</b> {format_money(start_cash)}\n"
+                f"💰 <b>Cobros en Efectivo:</b> {format_money(cash_payments - cash_refunds)}\n"
+                f"➕ <b>Entradas:</b> {format_money(paid_in)}\n"
+                f"➖ <b>Salidas:</b> {format_money(paid_out)}\n"
+                f"━━━━━━━━━━━━━━━━━━━━\n"
+                f"📈 <b>Efectivo Esperado en Caja:</b> <b>{format_money(expected_cash)}</b>\n\n"
+                f"📍 <i>Plaza La Fragua, Saltillo</i>"
+            )
+        else:
+            last = shifts[0]
+            emp = self.employees_cache.get(last.get("employee_id"), "Vonne Boutique")
+            closed_at = format_iso_time(last.get("closed_at"), offset)
+            return (
+                f"🔒 <b>ESTADO DE CAJA: CAJA CERRADA</b>\n"
+                f"🏪 <b>Vonne Boutique Saltillo</b>\n\n"
+                f"El último turno fue cerrado por <b>{emp}</b> a las <b>{closed_at}</b>.\n\n"
+                f"<i>En cuanto se abra turno en el punto de venta, se notificará aquí en automático.</i>"
+            )
+
+    def get_help_msg(self):
+        return (
+            f"✨ <b>COMANDOS DISPONIBLES - Vonne Boutique</b>\n\n"
+            f"Puedes escribir cualquiera de estos mensajes en el grupo:\n\n"
+            f"• <code>/ventas</code> o <code>/hoy</code> : Resumen de ventas, tickets y dinero acumulado hoy.\n"
+            f"• <code>/prendas</code> : Lista completa de prendas vendidas hoy con cantidades.\n"
+            f"• <code>/caja</code> o <code>/corte</code> : Estado de la caja registradora y efectivo actual.\n"
+            f"• <code>/ayer</code> : Reporte completo del día de ayer para comparar.\n"
+            f"• <code>/ayuda</code> : Muestra este menú de opciones.\n\n"
+            f"📍 <i>Plaza La Fragua, Saltillo</i>"
+        )
+
+    def process_telegram_commands(self):
+        bot_token = self.tg_cfg.get("bot_token")
+        if not bot_token:
+            return
+
+        last_id = self.state.get("last_update_id", 0)
+        url = f"https://api.telegram.org/bot{bot_token}/getUpdates?offset={last_id + 1}&limit=10&timeout=0"
+
+        try:
+            req = urllib.request.Request(url)
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                updates = data.get("result", [])
+        except Exception as e:
+            return
+
+        if not updates:
+            return
+
+        allowed_chats = set(str(c) for c in self.tg_cfg.get("allowed_chat_ids", ["-5559233999", "549065780"]))
+        main_chat = str(self.tg_cfg.get("chat_id", "-5559233999"))
+        allowed_chats.add(main_chat)
+
+        for u in updates:
+            up_id = u.get("update_id")
+            if up_id > self.state.get("last_update_id", 0):
+                self.state["last_update_id"] = up_id
+                save_json(STATE_PATH, self.state)
+
+            msg = u.get("message") or u.get("channel_post")
+            if not msg:
+                continue
+
+            chat = msg.get("chat", {})
+            sender_chat_id = str(chat.get("id"))
+            text = (msg.get("text") or "").strip().lower()
+
+            # Validación de seguridad: permitir responder al grupo autorizado o admin
+            if allowed_chats and sender_chat_id not in allowed_chats:
+                continue
+
+            if not text:
+                continue
+
+            # Limpiar mención al bot (ej. /ventas@notificacionesvonneboutique_bot)
+            text_clean = text.split("@")[0].strip()
+
+            if text_clean in ["/ventas", "/hoy", "/resumen", "ventas", "hoy", "resumen", "como vamos", "cómo vamos"]:
+                print(f"📩 Comando recibido: {text} en chat {sender_chat_id}")
+                stats = self.get_day_sales_summary()
+                reply = self.format_sales_summary_msg(stats, title="VENTAS DE HOY")
+                send_telegram(bot_token, sender_chat_id, reply)
+
+            elif text_clean in ["/ayer", "ayer"]:
+                print(f"📩 Comando recibido: {text} en chat {sender_chat_id}")
+                offset = self.tg_cfg.get("timezone_offset_hours", -6)
+                tz = timezone(timedelta(hours=offset))
+                yesterday = datetime.now(tz) - timedelta(days=1)
+                stats = self.get_day_sales_summary(yesterday)
+                reply = self.format_sales_summary_msg(stats, title="VENTAS DE AYER")
+                send_telegram(bot_token, sender_chat_id, reply)
+
+            elif text_clean in ["/prendas", "prendas", "articulos", "artículos", "piezas"]:
+                print(f"📩 Comando recibido: {text} en chat {sender_chat_id}")
+                stats = self.get_day_sales_summary()
+                reply = self.format_items_list_msg(stats)
+                send_telegram(bot_token, sender_chat_id, reply)
+
+            elif text_clean in ["/caja", "/corte", "caja", "corte", "turno"]:
+                print(f"📩 Comando recibido: {text} en chat {sender_chat_id}")
+                reply = self.get_drawer_status_msg()
+                send_telegram(bot_token, sender_chat_id, reply)
+
+            elif text_clean in ["/ayuda", "/help", "/start", "ayuda", "comandos", "menu", "menú"]:
+                print(f"📩 Comando recibido: {text} en chat {sender_chat_id}")
+                reply = self.get_help_msg()
+                send_telegram(bot_token, sender_chat_id, reply)
+
     def run_cycle(self):
-        # Recargar configuración por si el usuario actualizó tokens
         self.tg_cfg = load_json(TELEGRAM_CONFIG_PATH)
         self.check_receipts()
         self.check_shifts()
@@ -395,16 +691,16 @@ def send_test_message():
 
     if not bot_token or not chat_id or "TU_BOT_TOKEN" in str(bot_token):
         print("\n❌ Error: Aún no has configurado el bot_token o chat_id en telegram_config.json.")
-        print("Edita el archivo telegram_config.json con tus credenciales de Telegram.")
         return False
 
     msg = (
         f"🤖 <b>¡Conexión Exitosa con Vonne Boutique!</b>\n\n"
-        f"Este bot de Telegram está configurado para avisarte al instante cuando:\n"
-        f"• 🛍️ Se registre una nueva venta\n"
-        f"• 🚨 Se cancele o devuelva un ticket\n"
-        f"• 🔓 Se abra la caja con su fondo inicial\n"
-        f"• 🔒 Se cierre la caja con el corte del día (Z-Report)\n\n"
+        f"Este bot de Telegram está activo y configurado.\n\n"
+        f"💡 <b>Prueba escribir en el chat:</b>\n"
+        f"• <code>/ventas</code> para ver el corte al momento\n"
+        f"• <code>/prendas</code> para ver prendas vendidas\n"
+        f"• <code>/caja</code> para revisar la caja\n"
+        f"• <code>/ayuda</code> para ver todos los comandos\n\n"
         f"📍 <i>Plaza La Fragua, Saltillo, Coahuila</i>"
     )
     print("Enviando mensaje de prueba a Telegram...")
@@ -417,23 +713,36 @@ def send_test_message():
 
 def run_daemon():
     print("==================================================")
-    print("  Vonne Boutique - Notificador de Loyverse POS   ")
+    print("  Vonne Boutique - Notificador y Bot Interactivo  ")
     print("==================================================")
-    print("Monitoreando ventas y movimientos de caja cada 60s...")
-    print("Presiona Ctrl + C para detener en cualquier momento.\n")
+    print("1. Notificaciones automáticas cada 30 segundos.")
+    print("2. Respuestas interactivas a comandos cada 3 segundos (/ventas, /caja, etc).")
+    print("Presiona Ctrl + C para detener.\n")
 
     notifier = LoyverseTelegramNotifier()
-    interval = notifier.tg_cfg.get("check_interval_seconds", notifier.tg_cfg.get("poll_interval_seconds", 30))
+    loy_interval = notifier.tg_cfg.get("check_interval_seconds", 30)
+    cmd_interval = notifier.tg_cfg.get("command_check_interval_seconds", 3)
+
+    last_loy_check = 0
 
     while True:
         try:
-            notifier.run_cycle()
+            now = time.time()
+            # 1. Comandos de chat interactivos (rápido)
+            notifier.process_telegram_commands()
+
+            # 2. Monitoreo de Loyverse (cada 30s)
+            if now - last_loy_check >= loy_interval:
+                notifier.run_cycle()
+                last_loy_check = now
+
         except KeyboardInterrupt:
             print("\nDeteniendo monitor de Telegram. ¡Hasta pronto!")
             break
         except Exception as e:
             print(f"[ERROR] Error inesperado en ciclo: {e}")
-        time.sleep(interval)
+
+        time.sleep(cmd_interval)
 
 def run_once():
     notifier = LoyverseTelegramNotifier()

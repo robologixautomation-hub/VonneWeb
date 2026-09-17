@@ -1,7 +1,12 @@
 {
   "bot_token": "8836320390:AAEton-8-qmRwhRe9TZp4_SXDTb-ZCpZrmg",
   "chat_id": "-5559233999",
+  "allowed_chat_ids": [
+    "-5559233999",
+    "549065780"
+  ],
   "check_interval_seconds": 30,
+  "command_check_interval_seconds": 3,
   "notify_sales": true,
   "notify_cancellations": true,
   "notify_drawer_open": true,
