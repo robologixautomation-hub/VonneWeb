@@ -657,63 +657,9 @@ class LoyverseTelegramNotifier:
             if not text:
                 continue
 
-            text_clean = text.split("@")[0].strip()
-
-            if text_clean in ["/ventas", "/hoy", "/resumen", "ventas", "hoy", "resumen", "como vamos", "cómo vamos"]:
-                print(f"📩 Comando /ventas en chat {sender_chat_id}")
-                stats = self.get_day_sales_summary()
-                reply = self.format_sales_summary_msg(stats, title="VENTAS DE HOY")
-                send_telegram(bot_token, sender_chat_id, reply)
-
-            elif text_clean in ["/ayer", "ayer"]:
-                print(f"📩 Comando /ayer en chat {sender_chat_id}")
-                offset = self.tg_cfg.get("timezone_offset_hours", -6)
-                tz = timezone(timedelta(hours=offset))
-                yesterday = datetime.now(tz) - timedelta(days=1)
-                stats = self.get_day_sales_summary(yesterday)
-                reply = self.format_sales_summary_msg(stats, title="VENTAS DE AYER")
-                send_telegram(bot_token, sender_chat_id, reply)
-
-            elif text_clean in ["/semana", "semana"]:
-                print(f"📩 Comando /semana en chat {sender_chat_id}")
-                reply = self.assistant.get_period_sales_summary(7, "ÚLTIMOS 7 DÍAS")
-                send_telegram(bot_token, sender_chat_id, reply)
-
-            elif text_clean in ["/mes", "mes"]:
-                print(f"📩 Comando /mes en chat {sender_chat_id}")
-                reply = self.assistant.get_period_sales_summary(30, "ÚLTIMOS 30 DÍAS")
-                send_telegram(bot_token, sender_chat_id, reply)
-
-            elif text_clean in ["/top", "top"]:
-                print(f"📩 Comando /top en chat {sender_chat_id}")
-                reply = self.assistant.get_top_sellers(30)
-                send_telegram(bot_token, sender_chat_id, reply)
-
-            elif text_clean in ["/agotados", "agotados", "poco stock", "inventario bajo"]:
-                print(f"📩 Comando /agotados en chat {sender_chat_id}")
-                reply = self.assistant.get_low_stock_report()
-                send_telegram(bot_token, sender_chat_id, reply)
-
-            elif text_clean in ["/prendas", "prendas", "articulos", "artículos", "piezas"]:
-                print(f"📩 Comando /prendas en chat {sender_chat_id}")
-                stats = self.get_day_sales_summary()
-                reply = self.format_items_list_msg(stats)
-                send_telegram(bot_token, sender_chat_id, reply)
-
-            elif text_clean in ["/caja", "/corte", "caja", "corte", "turno"]:
-                print(f"📩 Comando /caja en chat {sender_chat_id}")
-                reply = self.get_drawer_status_msg()
-                send_telegram(bot_token, sender_chat_id, reply)
-
-            elif text_clean in ["/ayuda", "/help", "/start", "ayuda", "comandos", "menu", "menú"]:
-                print(f"📩 Comando /ayuda en chat {sender_chat_id}")
-                reply = self.get_help_msg()
-                send_telegram(bot_token, sender_chat_id, reply)
-
-            else:
-                # Pregunta en lenguaje natural para el asistente
-                print(f"🤖 Consulta al asistente: '{raw_text}' en chat {sender_chat_id}")
-                reply = self.assistant.answer(raw_text)
+            print(f"💬 Mensaje recibido: '{raw_text}' en chat {sender_chat_id}")
+            reply = self.assistant.answer(raw_text)
+            if reply:
                 send_telegram(bot_token, sender_chat_id, reply)
 
     def run_cycle(self):

@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 """
 Vonne Boutique Saltillo - Asistente Inteligente de Loyverse POS
-Permite responder preguntas en lenguaje natural en Telegram sobre:
-- Stock y existencias de prendas específicas
-- Precios y tallas disponibles
-- Ventas del día, ayer, semana o mes
-- Prendas más vendidas (Top Sellers)
+Procesa lenguaje natural en Telegram y responde con datos en vivo de:
+- Prendas vendidas hoy o ayer
+- Ventas y cortes de caja del día, ayer, semana o mes
+- Stock, tallas y precios de prendas específicas
 - Prendas agotadas o con poco inventario
-- Desempeño y ventas por cajera/colaboradora
-- Búsqueda de tickets específicos
-- Síntesis inteligente con IA (Google Gemini) si está configurada la API Key
+- Ranking de prendas más vendidas (Top Sellers)
+- Detalle de cualquier ticket
+- Estado actual de la caja
 """
 
 import os
 import sys
 import json
 import re
+import unicodedata
 import urllib.request
 import urllib.parse
 import urllib.error
@@ -55,6 +55,14 @@ def format_iso_time(iso_str, offset_hours=-6):
         return local_dt.strftime("%d/%m/%Y %I:%M %p")
     except Exception:
         return iso_str[:16].replace("T", " ")
+
+def normalize_text(text):
+    if not text:
+        return ""
+    t = text.lower()
+    t = unicodedata.normalize('NFD', t)
+    t = ''.join(c for c in t if unicodedata.category(c) != 'Mn')
+    return t.strip()
 
 class LoyverseAssistant:
     def __init__(self, loy_token, tg_cfg=None):
@@ -101,63 +109,151 @@ class LoyverseAssistant:
         return []
 
     # -------------------------------------------------------------------------
-    # 1. Búsqueda de Stock y Precios de Prendas
+    # Resumen de Ventas por Día (Hoy o Ayer)
     # -------------------------------------------------------------------------
-    def search_products(self, query):
-        catalog = self.load_catalog()
-        stop_words = {
-            "tienes", "cuanto", "cuánto", "queda", "quedan", "hay", "stock",
-            "precio", "cuesta", "cuestan", "talla", "tallas", "tienen", "de", "la",
-            "el", "los", "las", "un", "una", "en", "por", "favor", "me", "dices",
-            "existencia", "existencias", "disponible", "disponibles"
+    def get_day_sales_summary(self, target_dt=None):
+        if target_dt is None:
+            target_dt = datetime.now(self.tz)
+
+        start_local = datetime(target_dt.year, target_dt.month, target_dt.day, 0, 0, 0, tzinfo=self.tz)
+        end_local = start_local + timedelta(days=1)
+
+        start_utc = start_local.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        end_utc = end_local.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        day_name = DAYS_ES.get(target_dt.weekday(), "")
+        month_name = MONTHS_ES.get(target_dt.month, "")
+        human_date = f"{day_name} {target_dt.day} de {month_name}, {target_dt.year}"
+
+        url = f"receipts?created_at_min={start_utc}&created_at_max={end_utc}&limit=250"
+        try:
+            data = self._api_get(url)
+            receipts = data.get("receipts", [])
+        except Exception as e:
+            print(f"[ERROR] Error consultando recibos del día: {e}")
+            receipts = []
+
+        total_gross = 0.0
+        total_refunds = 0.0
+        ticket_count = 0
+        items_agg = defaultdict(lambda: {"qty": 0, "money": 0.0})
+        payments_agg = defaultdict(float)
+
+        for r in receipts:
+            r_type = r.get("receipt_type")
+            cancelled = bool(r.get("cancelled_at"))
+
+            if cancelled or r_type == "REFUND":
+                total_refunds += r.get("total_money", 0.0)
+                continue
+
+            if r_type == "SALE":
+                ticket_count += 1
+                total_gross += r.get("total_money", 0.0)
+
+                for it in r.get("line_items", []):
+                    name = it.get("item_name", "Prenda")
+                    q = it.get("quantity", 1)
+                    m = it.get("total_money", 0.0)
+                    items_agg[name]["qty"] += q
+                    items_agg[name]["money"] += m
+
+                for p in r.get("payments", []):
+                    p_name = p.get("name") or self.payment_types_cache.get(p.get("payment_type_id"), "Efectivo")
+                    p_amt = p.get("money_amount", 0.0)
+                    payments_agg[p_name] += p_amt
+
+        total_net = total_gross - total_refunds
+        total_pieces = sum(v["qty"] for v in items_agg.values())
+
+        return {
+            "date_human": human_date,
+            "ticket_count": ticket_count,
+            "total_gross": total_gross,
+            "total_net": total_net,
+            "total_refunds": total_refunds,
+            "total_pieces": total_pieces,
+            "items": items_agg,
+            "payments": payments_agg
         }
-        tokens = [t.lower().strip("?,.!") for t in query.split() if len(t) > 1]
-        search_terms = [t for t in tokens if t not in stop_words]
-        if not search_terms:
-            search_terms = tokens
 
-        scored = []
-        for p in catalog:
-            text = f"{p.get('nombre', '')} {p.get('codigo', '')} {p.get('categoria', '')}".lower()
-            score = 0
-            for term in search_terms:
-                if term in text:
-                    score += 2 if term in p.get("nombre", "").lower() else 1
-            if score > 0:
-                scored.append((score, p))
+    def format_sales_summary_msg(self, stats, title="VENTAS DE HOY"):
+        date_str = stats["date_human"]
+        t_count = stats["ticket_count"]
+        net = stats["total_net"]
+        pieces = stats["total_pieces"]
 
-        scored.sort(key=lambda x: x[0], reverse=True)
-        return [p for _, p in scored[:5]]
-
-    def answer_stock_or_price(self, query):
-        matches = self.search_products(query)
-        if not matches:
+        if t_count == 0:
             return (
-                "🔍 <b>No encontré esa prenda en el catálogo.</b>\n\n"
-                "Intenta con palabras clave como <i>blazer, faja, vestido, chaleco, blusa, short</i> o el código de prenda (ej. <code>VB-10101</code>)."
+                f"📊 <b>{title} - Vonne Boutique</b>\n"
+                f"📅 <i>{date_str}</i>\n\n"
+                f"ℹ️ Aún no se registran tickets de venta en esta fecha.\n\n"
+                f"✨ <i>¡Excelente jornada de trabajo!</i>\n"
+                f"📍 <i>Plaza La Fragua, Saltillo</i>"
             )
 
-        lines = [f"👗 <b>RESULTADOS EN CATÁLOGO ({len(matches)})</b>\n"]
-        for p in matches:
-            nombre = p.get("nombre", "Prenda")
-            codigo = p.get("codigo", "")
-            precio = format_money(p.get("precio", 0))
-            tallas = ", ".join(p.get("tallas", ["UNITALLA"]))
-            stock = int(p.get("stock", 0))
-            badge = "🟢 Disponible" if stock > 3 else ("🟡 Pocas piezas" if stock > 0 else "🔴 Agotado")
+        pay_lines = []
+        for p_name, p_amt in sorted(stats["payments"].items(), key=lambda x: x[1], reverse=True):
+            pay_lines.append(f"• <b>{p_name}:</b> {format_money(p_amt)}")
+        pay_block = "\n".join(pay_lines) if pay_lines else "• Efectivo: $0.00"
 
-            lines.append(
-                f"• <b>{nombre}</b> (<code>{codigo}</code>)\n"
-                f"  💰 <b>Precio:</b> {precio}\n"
-                f"  📏 <b>Tallas:</b> {tallas}\n"
-                f"  📦 <b>Stock:</b> <b>{stock} pzas</b> ({badge})\n"
+        sorted_items = sorted(stats["items"].items(), key=lambda x: x[1]["qty"], reverse=True)
+        items_lines = []
+        for name, d in sorted_items[:10]:
+            items_lines.append(f"• {d['qty']}x <b>{name}</b> ({format_money(d['money'])})")
+        if len(sorted_items) > 10:
+            remaining = sum(d['qty'] for _, d in sorted_items[10:])
+            items_lines.append(f"<i>... y {remaining} prendas más</i>")
+
+        items_block = "\n".join(items_lines) if items_lines else "• Sin prendas registradas"
+
+        return (
+            f"📊 <b>{title} - Vonne Boutique</b>\n"
+            f"📅 <i>{date_str}</i>\n\n"
+            f"💰 <b>VENTAS TOTALES:</b> <b>{format_money(net)}</b>\n"
+            f"🎟️ <b>Tickets Cobrados:</b> {t_count}\n"
+            f"👗 <b>Prendas Vendidas:</b> {pieces} piezas\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"💳 <b>FORMAS DE PAGO:</b>\n"
+            f"{pay_block}\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"🛍️ <b>PRENDAS VENDIDAS:</b>\n"
+            f"{items_block}\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"📍 <i>Plaza La Fragua, Saltillo</i>"
+        )
+
+    def format_items_list_msg(self, stats, title="PRENDAS VENDIDAS"):
+        date_str = stats["date_human"]
+        pieces = stats["total_pieces"]
+        if pieces == 0:
+            return (
+                f"👗 <b>{title} - Vonne Boutique</b>\n"
+                f"📅 <i>{date_str}</i>\n\n"
+                f"ℹ️ No se registraron prendas vendidas en esta fecha."
             )
 
-        lines.append("📍 <i>Plaza La Fragua, Saltillo</i>")
-        return "\n".join(lines)
+        sorted_items = sorted(stats["items"].items(), key=lambda x: x[1]["qty"], reverse=True)
+        lines = []
+        for name, d in sorted_items:
+            lines.append(f"• <b>{d['qty']}x</b> {name} — {format_money(d['money'])}")
+
+        pay_lines = [f"{k}: {format_money(v)}" for k, v in sorted(stats["payments"].items(), key=lambda x: x[1], reverse=True)]
+        pay_str = ", ".join(pay_lines) if pay_lines else "Efectivo"
+
+        return (
+            f"👗 <b>{title} ({pieces} piezas en total)</b>\n"
+            f"🏪 <b>Vonne Boutique Saltillo</b>\n"
+            f"📅 <i>{date_str}</i>\n\n"
+            + "\n".join(lines) + "\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"💰 <b>Total Vendido:</b> <b>{format_money(stats['total_net'])}</b> ({stats['ticket_count']} tickets)\n"
+            f"💳 <b>Pagos:</b> {pay_str}\n\n"
+            f"📍 <i>Plaza La Fragua, Saltillo</i>"
+        )
 
     # -------------------------------------------------------------------------
-    # 2. Resumen Semanal o Mensual
+    # Ventas de la Semana / Mes
     # -------------------------------------------------------------------------
     def get_period_sales_summary(self, days=7, label="ÚLTIMOS 7 DÍAS"):
         now_utc = datetime.now(timezone.utc)
@@ -222,7 +318,7 @@ class LoyverseAssistant:
         )
 
     # -------------------------------------------------------------------------
-    # 3. Prendas Más Vendidas (Top Sellers)
+    # Top Prendas Más Vendidas
     # -------------------------------------------------------------------------
     def get_top_sellers(self, days=30):
         now_utc = datetime.now(timezone.utc)
@@ -263,7 +359,7 @@ class LoyverseAssistant:
         return "\n".join(lines)
 
     # -------------------------------------------------------------------------
-    # 4. Alertas de Poco Stock y Agotados
+    # Alertas de Inventario Bajo y Agotados
     # -------------------------------------------------------------------------
     def get_low_stock_report(self):
         catalog = self.load_catalog()
@@ -296,7 +392,113 @@ class LoyverseAssistant:
         return "\n".join(lines)
 
     # -------------------------------------------------------------------------
-    # 5. Búsqueda de Ticket Específico
+    # Estado de Caja en Vivo
+    # -------------------------------------------------------------------------
+    def get_drawer_status_msg(self):
+        try:
+            data = self._api_get("shifts?limit=3")
+            shifts = data.get("shifts", [])
+        except Exception as e:
+            return f"❌ Error consultando estado de caja: {e}"
+
+        if not shifts:
+            return "ℹ️ No hay registros recientes de turnos de caja en Loyverse."
+
+        open_shift = next((s for s in shifts if s.get("closed_at") is None), None)
+
+        if open_shift:
+            emp = self.employees_cache.get(open_shift.get("employee_id"), "Vonne Boutique")
+            opened_at = format_iso_time(open_shift.get("opened_at"), self.offset_hours)
+            start_cash = open_shift.get("starting_cash", 0.0)
+            cash_payments = open_shift.get("cash_payments", 0.0)
+            cash_refunds = open_shift.get("cash_refunds", 0.0)
+            paid_in = open_shift.get("paid_in", 0.0)
+            paid_out = open_shift.get("paid_out", 0.0)
+            expected_cash = open_shift.get("expected_cash", 0.0)
+
+            return (
+                f"💵 <b>ESTADO DE CAJA ACTUAL (Turno Abierto)</b>\n"
+                f"🏪 <b>Vonne Boutique Saltillo</b>\n\n"
+                f"👤 <b>Atendiendo:</b> {emp}\n"
+                f"🕐 <b>Apertura:</b> {opened_at}\n"
+                f"━━━━━━━━━━━━━━━━━━━━\n"
+                f"💵 <b>Fondo Inicial:</b> {format_money(start_cash)}\n"
+                f"💰 <b>Cobros en Efectivo:</b> {format_money(cash_payments - cash_refunds)}\n"
+                f"➕ <b>Entradas de Caja:</b> +{format_money(paid_in)}\n"
+                f"➖ <b>Salidas de Caja:</b> -{format_money(paid_out)}\n"
+                f"━━━━━━━━━━━━━━━━━━━━\n"
+                f"📈 <b>Efectivo Esperado en Caja:</b> <b>{format_money(expected_cash)}</b>\n\n"
+                f"📍 <i>Plaza La Fragua, Saltillo</i>"
+            )
+        else:
+            last = shifts[0]
+            emp = self.employees_cache.get(last.get("employee_id"), "Vonne Boutique")
+            closed_at = format_iso_time(last.get("closed_at"), self.offset_hours)
+            return (
+                f"🔒 <b>ESTADO DE CAJA: CAJA CERRADA</b>\n"
+                f"🏪 <b>Vonne Boutique Saltillo</b>\n\n"
+                f"El último turno fue cerrado por <b>{emp}</b> a las <b>{closed_at}</b>.\n\n"
+                f"<i>En cuanto abran turno en el punto de venta, se notificará aquí en automático.</i>"
+            )
+
+    # -------------------------------------------------------------------------
+    # Búsqueda de Stock y Precios
+    # -------------------------------------------------------------------------
+    def answer_stock_or_price(self, query):
+        catalog = self.load_catalog()
+        stop_words = {
+            "tienes", "cuanto", "cuánto", "queda", "quedan", "hay", "stock",
+            "precio", "cuesta", "cuestan", "talla", "tallas", "tienen", "de", "la",
+            "el", "los", "las", "un", "una", "en", "por", "favor", "me", "dices",
+            "existencia", "existencias", "disponible", "disponibles", "que"
+        }
+        tokens = [t.lower().strip("?,.!") for t in query.split() if len(t) > 1]
+        search_terms = [t for t in tokens if t not in stop_words]
+        if not search_terms:
+            search_terms = tokens
+
+        scored = []
+        for p in catalog:
+            text = f"{p.get('nombre', '')} {p.get('codigo', '')} {p.get('categoria', '')}".lower()
+            text_norm = normalize_text(text)
+            score = 0
+            for term in search_terms:
+                term_norm = normalize_text(term)
+                if term_norm in text_norm:
+                    score += 2 if term_norm in normalize_text(p.get("nombre", "")) else 1
+            if score > 0:
+                scored.append((score, p))
+
+        scored.sort(key=lambda x: x[0], reverse=True)
+        matches = [p for _, p in scored[:5]]
+
+        if not matches:
+            return (
+                "🔍 <b>No encontré esa prenda en el catálogo.</b>\n\n"
+                "Intenta con palabras clave como <i>blazer, faja, vestido, chaleco, blusa, short</i> o el código de prenda (ej. <code>VB-10101</code>)."
+            )
+
+        lines = [f"👗 <b>RESULTADOS EN CATÁLOGO ({len(matches)})</b>\n"]
+        for p in matches:
+            nombre = p.get("nombre", "Prenda")
+            codigo = p.get("codigo", "")
+            precio = format_money(p.get("precio", 0))
+            tallas = ", ".join(p.get("tallas", ["UNITALLA"]))
+            stock = int(p.get("stock", 0))
+            badge = "🟢 Disponible" if stock > 3 else ("🟡 Pocas piezas" if stock > 0 else "🔴 Agotado")
+
+            lines.append(
+                f"• <b>{nombre}</b> (<code>{codigo}</code>)\n"
+                f"  💰 <b>Precio:</b> {precio}\n"
+                f"  📏 <b>Tallas:</b> {tallas}\n"
+                f"  📦 <b>Stock:</b> <b>{stock} pzas</b> ({badge})\n"
+            )
+
+        lines.append("📍 <i>Plaza La Fragua, Saltillo</i>")
+        return "\n".join(lines)
+
+    # -------------------------------------------------------------------------
+    # Búsqueda de Ticket
     # -------------------------------------------------------------------------
     def search_ticket(self, query):
         clean_num = re.sub(r'[^0-9\-]', '', query).strip("-")
@@ -354,54 +556,83 @@ class LoyverseAssistant:
         )
 
     # -------------------------------------------------------------------------
-    # 6. Motor Inteligente de Respuestas
+    # Cerebro del Asistente: Comprensión de Intenciones
     # -------------------------------------------------------------------------
     def answer(self, text):
         clean = text.lower().strip()
-
-        # Quitar prefijo de comando o mención
         clean = re.sub(r'^/(?:asistente|pregunta|ask|consulta)\s*', '', clean)
         clean = re.sub(r'@\w+', '', clean).strip()
+        norm = normalize_text(clean)
 
-        # A) Búsqueda de ticket
-        if re.search(r'\b(?:ticket|recibo|folio)\b', clean):
+        # 1. Búsqueda de ticket
+        if re.search(r'\b(?:ticket|recibo|folio)\b', norm) or re.search(r'#\d+', norm):
             return self.search_ticket(clean)
 
-        # B) Alertas de stock bajo / agotados
-        if any(w in clean for w in ["agotado", "agotados", "poco stock", "resurtir", "resurtido", "por agotarse", "inventario bajo"]):
+        # 2. Poco stock / Agotados / Resurtir
+        if any(w in norm for w in ["agotad", "poco stock", "resurt", "por agotarse", "bajo stock", "inventario bajo", "que falta"]):
             return self.get_low_stock_report()
 
-        # C) Top prendas más vendidas
-        if any(w in clean for w in ["top", "mas vendida", "más vendida", "mas vendidas", "más vendidas", "mejores prendas", "ranking"]):
+        # 3. Top prendas más vendidas
+        if any(w in norm for w in ["top", "mas vendid", "ranking", "lo que mas", "estrella", "mejores prendas"]):
             return self.get_top_sellers(30)
 
-        # D) Ventas de la semana
-        if any(w in clean for w in ["esta semana", "semana", "ultimos 7 dias", "últimos 7 días", "7 dias", "7 días"]):
+        # 4. Consultas relacionadas con AYER
+        if "ayer" in norm:
+            yesterday = datetime.now(self.tz) - timedelta(days=1)
+            stats = self.get_day_sales_summary(yesterday)
+            # ¿Preguntó por prendas o ropa específicamente?
+            if any(w in norm for w in ["prenda", "ropa", "pieza", "articulo", "vendieron", "vendio", "salio", "salieron"]):
+                return self.format_items_list_msg(stats, title="PRENDAS VENDIDAS AYER")
+            else:
+                return self.format_sales_summary_msg(stats, title="VENTAS DE AYER")
+
+        # 5. Consultas de SEMANA
+        if any(w in norm for w in ["semana", "7 dias", "ultimos dias"]):
             return self.get_period_sales_summary(7, "ÚLTIMOS 7 DÍAS")
 
-        # E) Ventas del mes
-        if any(w in clean for w in ["este mes", "mes", "mensual", "ultimos 30 dias", "30 dias", "30 días"]):
+        # 6. Consultas de MES
+        if any(w in norm for w in ["este mes", "mensual", "30 dias", "del mes"]):
             return self.get_period_sales_summary(30, "ÚLTIMOS 30 DÍAS")
 
-        # F) Consulta de Stock o Precios de prendas
-        if any(w in clean for w in [
-            "stock", "precio", "cuanto", "cuánto", "queda", "quedan", "hay",
-            "tienes", "tienen", "talla", "tallas", "blazer", "faja", "vestido",
-            "chaleco", "blusa", "short", "conjunto", "capa", "pantalon", "pantalón", "falda"
-        ]):
+        # 7. Consultas relacionadas con HOY o ventas actuales
+        if any(w in norm for w in ["hoy", "dia", "ahorita", "llevamos", "momento", "al momento"]) or any(w in norm for w in ["venta", "vendido", "corte", "como vamos", "como va"]):
+            if any(w in norm for w in ["caja", "corte", "fondo", "efectivo en caja", "cajon"]):
+                return self.get_drawer_status_msg()
+            stats = self.get_day_sales_summary()
+            if any(w in norm for w in ["prenda", "ropa", "pieza", "articulo", "vendieron", "vendio", "salio", "salieron"]):
+                return self.format_items_list_msg(stats, title="PRENDAS VENDIDAS HOY")
+            else:
+                return self.format_sales_summary_msg(stats, title="VENTAS DE HOY")
+
+        # 8. Estado de Caja / Corte
+        if any(w in norm for w in ["caja", "corte", "fondo", "efectivo", "cajon"]):
+            return self.get_drawer_status_msg()
+
+        # 9. Búsqueda de Stock, Precios o Prendas del catálogo
+        garment_keywords = [
+            "stock", "precio", "cuanto", "queda", "hay", "tienes", "tienen", "talla",
+            "blazer", "vestido", "falda", "short", "blusa", "chaleco", "capa",
+            "conjunto", "pantalon", "top", "playera", "satin", "gamuza", "mesh",
+            "peluche", "cinto", "faja"
+        ]
+        if any(w in norm for w in garment_keywords):
             return self.answer_stock_or_price(clean)
 
-        # G) Mensaje de ayuda / guía
+        # 10. Fallback: Menú de ayuda amigable
         return (
             f"🤖 <b>Asistente Vonne Boutique - Loyverse POS</b>\n\n"
             f"¡Hola! Puedes preguntarme sobre cualquier tema de la tienda. Por ejemplo:\n\n"
+            f"🛍️ <b>Prendas y Ventas:</b>\n"
+            f"• <i>\"¿Qué prendas vendieron ayer?\"</i>\n"
+            f"• <i>\"¿Qué prendas se han vendido hoy?\"</i>\n"
+            f"• <i>\"¿Cuánto vendimos en la semana?\"</i>\n"
+            f"• <i>\"¿Cuáles son las prendas más vendidas?\"</i>\n\n"
             f"📦 <b>Stock y Precios:</b>\n"
-            f"• <i>¿Cuánto stock queda de blazer blanco?</i>\n"
-            f"• <i>¿Qué precio tiene la faja moldeadora?</i>\n"
-            f"• <i>¿Qué prendas están agotadas o con poco stock?</i>\n\n"
-            f"📊 <b>Ventas y Reportes:</b>\n"
-            f"• <i>¿Cómo van las ventas de la semana?</i>\n"
-            f"• <i>¿Cuáles son las prendas más vendidas del mes?</i>\n"
-            f"• <i>Detalle del ticket 3949</i>\n\n"
+            f"• <i>\"¿Cuánto stock queda de blazer blanco?\"</i>\n"
+            f"• <i>\"¿Qué precio tiene el vestido de flores?\"</i>\n"
+            f"• <i>\"¿Qué prendas tienen poco stock o están agotadas?\"</i>\n\n"
+            f"💵 <b>Caja y Tickets:</b>\n"
+            f"• <i>\"¿Cómo está la caja?\"</i>\n"
+            f"• <i>\"Detalle del ticket 3949\"</i>\n\n"
             f"📍 <i>Plaza La Fragua, Saltillo, Coahuila</i>"
         )
