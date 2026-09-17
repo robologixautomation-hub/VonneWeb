@@ -684,6 +684,53 @@ class LoyverseAssistant:
         )
 
     # -------------------------------------------------------------------------
+    # Resumen Global de Inventario en Tienda
+    # -------------------------------------------------------------------------
+    def get_inventory_overview_report(self):
+        catalog = self.load_catalog()
+        if not catalog:
+            return "ℹ️ No hay prendas cargadas en el catálogo actualmente."
+
+        total_models = len(catalog)
+        total_pieces = int(sum(max(0, p.get("stock", 0)) for p in catalog))
+        total_value = sum(max(0, p.get("stock", 0)) * p.get("precio", 0) for p in catalog)
+
+        in_stock_models = [p for p in catalog if p.get("stock", 0) > 0]
+        out_of_stock_models = [p for p in catalog if p.get("stock", 0) <= 0]
+        low_stock_models = [p for p in catalog if 0 < p.get("stock", 0) <= 3]
+
+        cats_agg = defaultdict(lambda: {"models": 0, "pieces": 0, "value": 0.0})
+        for p in catalog:
+            cat = (p.get("categoria") or "general").replace("-", " ").title()
+            st = int(max(0, p.get("stock", 0)))
+            val = st * p.get("precio", 0)
+            cats_agg[cat]["models"] += 1
+            cats_agg[cat]["pieces"] += st
+            cats_agg[cat]["value"] += val
+
+        cat_lines = []
+        for cat, data in sorted(cats_agg.items(), key=lambda x: x[1]["pieces"], reverse=True):
+            cat_lines.append(f"• <b>{cat}:</b> {data['pieces']} piezas ({data['models']} modelos)")
+
+        return (
+            f"📦 <b>RESUMEN TOTAL DE INVENTARIO</b>\n"
+            f"🏪 <b>Vonne Boutique Saltillo (Plaza La Fragua)</b>\n\n"
+            f"👗 <b>Prendas Físicas Totales:</b> <b>{total_pieces} piezas en tienda</b>\n"
+            f"🏷️ <b>Modelos Registrados:</b> {total_models} productos\n"
+            f"💰 <b>Valor Estimado de Inventario:</b> <b>{format_money(total_value)}</b>\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"📊 <b>ESTADO DEL PERCHERO:</b>\n"
+            f"• 🟢 Disponibles: {len(in_stock_models)} modelos\n"
+            f"• 🟡 Por agotarse (<= 3 pzas): {len(low_stock_models)} modelos\n"
+            f"• 🔴 Agotados (0 pzas): {len(out_of_stock_models)} modelos\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"🗂️ <b>DESGLOSE POR CATEGORÍA:</b>\n"
+            + "\n".join(cat_lines) +
+            f"\n━━━━━━━━━━━━━━━━━━━━\n"
+            f"📍 <i>Plaza La Fragua, Saltillo, Coahuila</i>"
+        )
+
+    # -------------------------------------------------------------------------
     # Alertas de Inventario Bajo y Agotados
     # -------------------------------------------------------------------------
     def get_low_stock_report(self):
@@ -1021,6 +1068,8 @@ class LoyverseAssistant:
                     return self.get_best_sales_day(month=month, year=now_dt.year)
                 else:
                     return self.get_best_sales_day(days=30)
+            elif name == "consultar_resumen_inventario":
+                return self.get_inventory_overview_report()
         except Exception as e:
             return f"Error ejecutando consulta en Loyverse: {e}"
         return "Consulta completada."
@@ -1036,6 +1085,11 @@ class LoyverseAssistant:
 
         tools_def = [{
             "function_declarations": [
+                {
+                    "name": "consultar_resumen_inventario",
+                    "description": "Obtiene las métricas y resumen global de inventario de toda la tienda (cuántas prendas físicas hay en total, cuántos modelos registrados, valor total del inventario y desglose por categorías). Úsala cuando pregunten 'cuántas prendas tengo en inventario', 'resumen de inventario', 'cuántas piezas hay', 'cuánto vale el inventario'.",
+                    "parameters": {"type": "OBJECT", "properties": {}}
+                },
                 {
                     "name": "consultar_inventario",
                     "description": "Busca prendas en el catálogo de Vonne Boutique por nombre, categoría o talla, devolviendo existencias, precios y códigos.",
@@ -1300,7 +1354,13 @@ class LoyverseAssistant:
         if re.search(r'\b(?:mes|mensual|30 dias|del mes)\b', norm):
             return self.get_period_sales_summary(30, "ÚLTIMOS 30 DÍAS")
 
-        # 8. Búsqueda de Stock, Inventario o Precios de Prendas (PRIORIDAD SOBRE HOY)
+        # 7b. Resumen Global de Inventario (total de prendas, cuántas prendas hay, valor de inventario, etc.)
+        is_global_inv = bool(re.search(r'\b(?:cuantas prendas|cuantas piezas|total de prendas|total de piezas|total de inventario|resumen de inventario|resumen del inventario|valor del inventario|cuanto inventario|inventario total|cuanto tenemos en stock)\b', norm))
+        is_qty_clothes = bool(re.search(r'\b(?:cuant[ao]s?|total)\b', norm) and re.search(r'\b(?:prendas?|piezas?|articulos?|modelos?|ropa)\b', norm) and re.search(r'\b(?:inventario|stock|tienda|perchero|tenemos|hay|tengo)\b', norm) and not any(g in norm for g in garment_words))
+        if is_global_inv or is_qty_clothes:
+            return self.get_inventory_overview_report()
+
+        # 8. Búsqueda de Stock, Inventario o Precios de Prendas Específicas
         has_inv_word = bool(re.search(r'\b(?:inventarios?|stocks?|existencias?|precios?|tallas?|cuanto cuesta|cuanto valen?|tienes?|tienen?|queda|quedan)\b', norm))
         has_garment_word = any(re.search(r'\b' + g + r'\b', norm) for g in garment_words)
         if has_inv_word or has_garment_word:
