@@ -186,8 +186,9 @@
   <!-- Estilos Compilados de Alta Producción (Tailwind Minificado + Estilos Propios sin JS bloqueante) -->
   <link rel="stylesheet" href="styles.prod.css" />
 
-  <!-- Google Fonts Direct Link -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" />
+  <!-- Google Fonts Direct Link (Non-blocking para Core Web Vitals) -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" /></noscript>
 
   <!-- FontAwesome Íconos (Asincrónico no bloqueante) -->
   <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
@@ -201,7 +202,7 @@
   <!-- =========================================================================
        1. BARRA DE ANUNCIO SUPERIOR
        ========================================================================= -->
-  <div class="bg-brand-900 text-stone-200 text-xs py-2 px-4 border-b border-brand-800">
+  <div class="bg-brand-900 text-stone-200 text-xs py-2 px-4 border-b border-brand-800 min-h-[58px] sm:min-h-[36px] flex items-center">
     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
       <div class="flex items-center gap-2">
         <span class="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
@@ -342,8 +343,13 @@
         <!-- Columna de texto -->
         <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
           
-          <!-- Estado en Vivo de la Tienda -->
-          <div class="store-live-status inline-block"></div>
+          <!-- Estado en Vivo de la Tienda (Pre-renderizado para CLS 0.00) -->
+          <div class="store-live-status inline-block min-h-[34px]">
+            <div class="status-indicator status-open">
+              <span class="status-dot"></span>
+              <span>Plaza La Fragua • Saltillo, Coah.</span>
+            </div>
+          </div>
 
           <h1 class="font-display-luxury text-4xl sm:text-5xl lg:text-6xl font-bold text-brand-900 leading-[1.12] tracking-tight">
             Boutique de ropa para mujer, vestidos y moda en <span class="italic font-normal text-brand-600">Saltillo</span>.
