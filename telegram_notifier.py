@@ -1,0 +1,775 @@
+#!/usr/bin/env python3
+"""
+Vonne Boutique Saltillo - Notificador Oficial de Loyverse POS en Telegram
+Funciones:
+1. Notificaciones automáticas cada 30s:
+   - Nuevas Ventas / Tickets generados
+   - Cancelaciones / Reembolsos
+   - Apertura de caja (inicio de turno y fondo inicial)
+   - Cierre de caja / Corte del día (Z-Report completo)
+2. Comandos interactivos en el grupo de Telegram (< 3s):
+   - /ventas o /hoy: Resumen de ventas, tickets, ingresos y prendas vendidas hoy
+   - /ayer: Resumen del día anterior para comparar
+   - /prendas: Lista detallada de todas las prendas vendidas hoy
+   - /caja: Estado actual de la caja y efectivo acumulado
+   - /ayuda: Menú de comandos disponibles
+"""
+
+import os
+import sys
+import time
+import json
+import urllib.request
+import urllib.parse
+import urllib.error
+import re
+from datetime import datetime, timezone, timedelta
+from collections import defaultdict
+from loyverse_assistant import LoyverseAssistant
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Soporte para ejecución en segundo plano (pythonw) y consola
+LOG_PATH = os.path.join(BASE_DIR, "telegram_bot.log")
+if sys.stdout is None:
+    sys.stdout = open(LOG_PATH, "a", encoding="utf-8", errors="replace", buffering=1)
+elif hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+if sys.stderr is None:
+    sys.stderr = open(LOG_PATH, "a", encoding="utf-8", errors="replace", buffering=1)
+elif hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
+LOYVERSE_CONFIG_PATH = os.path.join(BASE_DIR, "loyverse_config.json")
+TELEGRAM_CONFIG_PATH = os.path.join(BASE_DIR, "telegram_config.json")
+STATE_PATH = os.path.join(BASE_DIR, "telegram_state.json")
+
+def load_json(path, default=None):
+    if os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"[ERROR] Error leyendo {path}: {e}")
+    return default or {}
+
+def save_json(path, data):
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        print(f"[ERROR] Error guardando {path}: {e}")
+
+def get_loyverse_token():
+    env_token = os.environ.get("LOYVERSE_TOKEN", "").strip()
+    if env_token:
+        return env_token
+    cfg = load_json(LOYVERSE_CONFIG_PATH)
+    return cfg.get("token", "").strip()
+
+def loyverse_api_get(endpoint, token):
+    url = f"https://api.loyverse.com/v1.0/{endpoint}"
+    req = urllib.request.Request(url, headers={
+        "Authorization": f"Bearer {token}",
+        "User-Agent": "VonneBoutiqueTelegramNotifier/2.0"
+    })
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        return json.loads(resp.read().decode("utf-8"))
+
+def format_for_telegram(text):
+    if not text:
+        return ""
+    # Convert markdown bold **text** to <b>text</b>
+    t = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', text)
+    # Convert markdown bullet * to •
+    t = re.sub(r'(?m)^\*\s+', '• ', t)
+    # Convert markdown code `text` to <code>text</code>
+    t = re.sub(r'`([^`]+)`', r'<code>\1</code>', t)
+    return t
+
+def send_telegram(bot_token, chat_id, text, parse_mode="HTML"):
+    if not bot_token or not chat_id:
+        print("[AVISO] Telegram no configurado (bot_token o chat_id vacíos).")
+        return False
+
+    if isinstance(chat_id, (list, tuple)):
+        targets = chat_id
+    elif isinstance(chat_id, str) and "," in chat_id:
+        targets = [c.strip() for c in chat_id.split(",") if c.strip()]
+    else:
+        targets = [chat_id]
+
+    # Convert common markdown if sending as HTML
+    formatted_text = format_for_telegram(text) if parse_mode == "HTML" else text
+
+    all_ok = True
+    for target in targets:
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        payload = {
+            "chat_id": target,
+            "text": formatted_text,
+            "parse_mode": parse_mode,
+            "disable_web_page_preview": True
+        }
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                res = json.loads(resp.read().decode("utf-8"))
+                if not res.get("ok", False):
+                    all_ok = False
+        except urllib.error.HTTPError as e:
+            err_body = e.read().decode("utf-8", errors="replace")
+            print(f"[ERROR Telegram ({target})] HTTP {e.code}: {err_body}")
+            # Si falló por formato HTML, reintentar sin formato para garantizar entrega
+            if parse_mode:
+                try:
+                    payload["text"] = text
+                    payload["parse_mode"] = None
+                    req_plain = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers={"Content-Type": "application/json"})
+                    with urllib.request.urlopen(req_plain, timeout=15) as resp_plain:
+                        res_plain = json.loads(resp_plain.read().decode("utf-8"))
+                        if res_plain.get("ok", False):
+                            print(f"[Telegram ({target})] Reintento como texto plano exitoso.")
+                            continue
+                except Exception as e_plain:
+                    print(f"[Telegram ({target})] Falló reintento plano: {e_plain}")
+            all_ok = False
+        except Exception as e:
+            print(f"[ERROR Telegram ({target})] Error de conexión: {e}")
+            all_ok = False
+    return all_ok
+
+def format_iso_time(iso_str, offset_hours=-6):
+    if not iso_str:
+        return "N/A"
+    try:
+        clean_str = iso_str.replace("Z", "+00:00")
+        dt = datetime.fromisoformat(clean_str)
+        local_dt = dt.astimezone(timezone(timedelta(hours=offset_hours)))
+        return local_dt.strftime("%d/%m/%Y %I:%M %p")
+    except Exception:
+        return iso_str[:16].replace("T", " ")
+
+def format_money(val):
+    try:
+        v = float(val)
+        return f"${v:,.2f} MXN"
+    except Exception:
+        return f"${val} MXN"
+
+MONTHS_ES = {
+    1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
+    5: "Mayo", 6: "Junio", 7: "Julio", 8: "Agosto",
+    9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"
+}
+
+DAYS_ES = {
+    0: "Lunes", 1: "Martes", 2: "Miércoles",
+    3: "Jueves", 4: "Viernes", 5: "Sábado", 6: "Domingo"
+}
+
+class LoyverseTelegramNotifier:
+    def __init__(self):
+        self.loy_token = get_loyverse_token()
+        self.tg_cfg = load_json(TELEGRAM_CONFIG_PATH)
+        self.state = load_json(STATE_PATH, {
+            "processed_receipt_ids": [],
+            "processed_shift_ids": [],
+            "known_open_shift_id": None,
+            "last_receipt_time": None,
+            "last_update_id": 0
+        })
+        self.employees_cache = {}
+        self.payment_types_cache = {}
+        self.assistant = LoyverseAssistant(self.loy_token, self.tg_cfg)
+        self._load_metadata()
+
+    def _load_metadata(self):
+        if not self.loy_token:
+            return
+        try:
+            emp_data = loyverse_api_get("employees", self.loy_token)
+            for emp in emp_data.get("employees", []):
+                self.employees_cache[emp["id"]] = emp.get("name", "Vonne Boutique")
+        except Exception as e:
+            print(f"[INFO] No se pudo cargar empleados: {e}")
+
+        try:
+            pt_data = loyverse_api_get("payment_types", self.loy_token)
+            for pt in pt_data.get("payment_types", []):
+                self.payment_types_cache[pt["id"]] = pt.get("name", "Otro")
+        except Exception as e:
+            print(f"[INFO] No se pudo cargar métodos de pago: {e}")
+
+    def check_receipts(self):
+        if not self.loy_token:
+            return
+        bot_token = self.tg_cfg.get("bot_token")
+        chat_id = self.tg_cfg.get("chat_id")
+        offset = self.tg_cfg.get("timezone_offset_hours", -6)
+
+        try:
+            data = loyverse_api_get("receipts?limit=10", self.loy_token)
+            receipts = data.get("receipts", [])
+        except Exception as e:
+            print(f"[ERROR] Error consultando recibos: {e}")
+            return
+
+        processed = set(self.state.get("processed_receipt_ids", []))
+        new_processed = list(self.state.get("processed_receipt_ids", []))
+
+        if not self.state.get("last_receipt_time") and receipts:
+            for r in receipts:
+                new_processed.append(r["receipt_number"])
+            self.state["processed_receipt_ids"] = new_processed[-50:]
+            self.state["last_receipt_time"] = receipts[0].get("created_at")
+            save_json(STATE_PATH, self.state)
+            print(f"ℹ️ Estado de recibos inicializado con {len(receipts)} tickets existentes.")
+            return
+
+        for r in reversed(receipts):
+            r_num = r.get("receipt_number")
+            r_type = r.get("receipt_type")
+            cancelled_at = r.get("cancelled_at")
+
+            event_id = f"{r_num}_{r_type}_{'cancelled' if cancelled_at else 'ok'}"
+            if event_id in processed:
+                continue
+
+            emp_name = self.employees_cache.get(r.get("employee_id"), "Vonne Boutique")
+            total = r.get("total_money", 0.0)
+            receipt_time = format_iso_time(r.get("created_at") or r.get("receipt_date"), offset)
+
+            # Caso 1: Cancelación
+            if cancelled_at or r_type == "REFUND":
+                if self.tg_cfg.get("notify_cancellations", True):
+                    cancel_time = format_iso_time(cancelled_at or r.get("updated_at"), offset)
+                    msg = (
+                        f"🚨 <b>TICKET CANCELADO / REEMBOLSO</b>\n\n"
+                        f"📄 <b>Ticket:</b> <code>#{r_num}</code>\n"
+                        f"👤 <b>Atendió:</b> {emp_name}\n"
+                        f"━━━━━━━━━━━━━━━━━━━━\n"
+                        f"💸 <b>Total Anulado:</b> {format_money(total)}\n"
+                        f"🕐 <b>Hora:</b> {cancel_time}\n"
+                        f"📍 <i>Plaza La Fragua, Saltillo</i>"
+                    )
+                    if send_telegram(bot_token, chat_id, msg):
+                        print(f"🔔 Notificación de cancelación enviada: #{r_num}")
+
+            # Caso 2: Nueva Venta
+            elif r_type == "SALE":
+                if self.tg_cfg.get("notify_sales", True):
+                    items_lines = []
+                    for it in r.get("line_items", []):
+                        qty = it.get("quantity", 1)
+                        name = it.get("item_name", "Prenda")
+                        price = it.get("total_money", 0.0)
+                        items_lines.append(f"• {qty}x <b>{name}</b> ({format_money(price)})")
+
+                    items_block = "\n".join(items_lines) if items_lines else "• Prenda seleccionada"
+
+                    payments = r.get("payments", [])
+                    pay_names = []
+                    for p in payments:
+                        p_name = p.get("name") or self.payment_types_cache.get(p.get("payment_type_id"), "Efectivo")
+                        pay_names.append(p_name)
+                    pay_str = ", ".join(pay_names) if pay_names else "Efectivo"
+
+                    msg = (
+                        f"🛍️ <b>NUEVA VENTA - Vonne Boutique</b>\n\n"
+                        f"📄 <b>Ticket:</b> <code>#{r_num}</code>\n"
+                        f"👤 <b>Atendió:</b> {emp_name}\n"
+                        f"━━━━━━━━━━━━━━━━━━━━\n"
+                        f"{items_block}\n"
+                        f"━━━━━━━━━━━━━━━━━━━━\n"
+                        f"💰 <b>TOTAL:</b> <b>{format_money(total)}</b>\n"
+                        f"💳 <b>Forma de Pago:</b> {pay_str}\n"
+                        f"🕐 <b>Hora:</b> {receipt_time}\n"
+                        f"📍 <i>Plaza La Fragua, Saltillo</i>"
+                    )
+                    if send_telegram(bot_token, chat_id, msg):
+                        print(f"🔔 Notificación de venta enviada: #{r_num} ({format_money(total)})")
+
+            new_processed.append(event_id)
+
+        self.state["processed_receipt_ids"] = new_processed[-80:]
+        if receipts:
+            self.state["last_receipt_time"] = receipts[0].get("created_at")
+        save_json(STATE_PATH, self.state)
+
+    def check_shifts(self):
+        if not self.loy_token:
+            return
+        bot_token = self.tg_cfg.get("bot_token")
+        chat_id = self.tg_cfg.get("chat_id")
+        offset = self.tg_cfg.get("timezone_offset_hours", -6)
+
+        try:
+            data = loyverse_api_get("shifts?limit=5", self.loy_token)
+            shifts = data.get("shifts", [])
+        except Exception as e:
+            print(f"[ERROR] Error consultando turnos: {e}")
+            return
+
+        if not shifts:
+            return
+
+        processed_shifts = set(self.state.get("processed_shift_ids", []))
+        known_open = self.state.get("known_open_shift_id")
+
+        if not processed_shifts and known_open is None:
+            for s in shifts:
+                if s.get("closed_at"):
+                    processed_shifts.add(s["id"])
+                else:
+                    self.state["known_open_shift_id"] = s["id"]
+            self.state["processed_shift_ids"] = list(processed_shifts)
+            save_json(STATE_PATH, self.state)
+            print(f"ℹ️ Estado de turnos de caja inicializado.")
+            return
+
+        for s in reversed(shifts):
+            shift_id = s.get("id")
+            emp_name = self.employees_cache.get(s.get("employee_id"), "Vonne Boutique")
+            opened_at = s.get("opened_at")
+            closed_at = s.get("closed_at")
+            start_cash = s.get("starting_cash", 0.0)
+
+            # Caso 1: Apertura
+            if closed_at is None:
+                if known_open != shift_id:
+                    self.state["known_open_shift_id"] = shift_id
+                    save_json(STATE_PATH, self.state)
+
+                    notify_open = self.tg_cfg.get("notify_drawer_open", self.tg_cfg.get("notify_shift_open", True))
+                    if notify_open:
+                        open_time_str = format_iso_time(opened_at, offset)
+                        msg = (
+                            f"🔓 <b>APERTURA DE CAJA - Vonne Boutique</b>\n\n"
+                            f"👤 <b>Abrió:</b> {emp_name}\n"
+                            f"💵 <b>Fondo Inicial de Caja:</b> <b>{format_money(start_cash)}</b>\n"
+                            f"🕐 <b>Hora de Apertura:</b> {open_time_str}\n"
+                            f"📍 <i>Plaza La Fragua, Saltillo</i>\n\n"
+                            f"✨ <i>¡Excelente jornada de ventas!</i>"
+                        )
+                        if send_telegram(bot_token, chat_id, msg):
+                            print(f"🔔 Notificación de apertura de caja enviada: {open_time_str}")
+
+            # Caso 2: Cierre
+            else:
+                if shift_id not in processed_shifts:
+                    processed_shifts.add(shift_id)
+                    if self.state.get("known_open_shift_id") == shift_id:
+                        self.state["known_open_shift_id"] = None
+                    self.state["processed_shift_ids"] = list(processed_shifts)[-30:]
+                    save_json(STATE_PATH, self.state)
+
+                    notify_close = self.tg_cfg.get("notify_drawer_close", self.tg_cfg.get("notify_shift_close", True))
+                    if notify_close:
+                        open_time_str = format_iso_time(opened_at, offset)
+                        close_time_str = format_iso_time(closed_at, offset)
+
+                        gross_sales = s.get("gross_sales", 0.0)
+                        net_sales = s.get("net_sales", 0.0)
+                        discounts = s.get("discounts", 0.0)
+                        refunds = s.get("refunds", 0.0)
+
+                        cash_payments = s.get("cash_payments", 0.0)
+                        cash_refunds = s.get("cash_refunds", 0.0)
+                        paid_in = s.get("paid_in", 0.0)
+                        paid_out = s.get("paid_out", 0.0)
+                        expected_cash = s.get("expected_cash", 0.0)
+                        actual_cash = s.get("actual_cash", 0.0)
+                        difference = actual_cash - expected_cash
+
+                        payments_summary = s.get("payments", [])
+                        pay_lines = []
+                        for pm in payments_summary:
+                            pm_name = pm.get("payment_type_name") or self.payment_types_cache.get(pm.get("payment_type_id"), "Otro")
+                            pm_amount = pm.get("total_money", 0.0)
+                            pay_lines.append(f"• <b>{pm_name}:</b> {format_money(pm_amount)}")
+                        payments_block = "\n".join(pay_lines) if pay_lines else f"• <b>Efectivo:</b> {format_money(cash_payments)}"
+
+                        if abs(difference) < 0.01:
+                            diff_badge = "✅ Cuadrado exacto (Sin diferencia)"
+                        elif difference > 0:
+                            diff_badge = f"🟢 Sobrante: +{format_money(difference)}"
+                        else:
+                            diff_badge = f"🔴 Faltante: {format_money(difference)}"
+
+                        msg = (
+                            f"🔒 <b>CORTE DE CAJA / CIERRE DEL DÍA</b>\n"
+                            f"🏪 <b>Vonne Boutique Saltillo</b>\n\n"
+                            f"👤 <b>Cajero/a:</b> {emp_name}\n"
+                            f"📅 <b>Período:</b> {open_time_str} ➡️ {close_time_str}\n"
+                            f"━━━━━━━━━━━━━━━━━━━━\n"
+                            f"📊 <b>RESUMEN DE VENTAS</b>\n"
+                            f"• Ventas Brutas: {format_money(gross_sales)}\n"
+                            f"• Descuentos: -{format_money(discounts)}\n"
+                            f"• Devoluciones: -{format_money(refunds)}\n"
+                            f"💰 <b>VENTAS NETAS:</b> <b>{format_money(net_sales)}</b>\n"
+                            f"━━━━━━━━━━━━━━━━━━━━\n"
+                            f"💳 <b>DESGLOSE POR FORMA DE PAGO</b>\n"
+                            f"{payments_block}\n"
+                            f"━━━━━━━━━━━━━━━━━━━━\n"
+                            f"💵 <b>CONTROL DE EFECTIVO EN CAJA</b>\n"
+                            f"• Fondo Inicial: {format_money(start_cash)}\n"
+                            f"• Cobros en Efectivo: {format_money(cash_payments - cash_refunds)}\n"
+                            f"• Entradas de Caja: +{format_money(paid_in)}\n"
+                            f"• Salidas de Caja: -{format_money(paid_out)}\n"
+                            f"• Efectivo Esperado: {format_money(expected_cash)}\n"
+                            f"• <b>Efectivo Real Contado:</b> <b>{format_money(actual_cash)}</b>\n"
+                            f"⚖️ <b>Estado del Cuadre:</b> {diff_badge}\n"
+                            f"━━━━━━━━━━━━━━━━━━━━\n"
+                            f"📍 <i>Plaza La Fragua, Saltillo</i>"
+                        )
+                        if send_telegram(bot_token, chat_id, msg):
+                            print(f"🔔 Notificación de corte de caja enviada: {close_time_str}")
+
+    # =========================================================================
+    # LÓGICA DE REPORTES INTERACTIVOS
+    # =========================================================================
+
+    def get_day_sales_summary(self, target_dt=None):
+        offset = self.tg_cfg.get("timezone_offset_hours", -6)
+        tz = timezone(timedelta(hours=offset))
+        if target_dt is None:
+            target_dt = datetime.now(tz)
+
+        start_local = datetime(target_dt.year, target_dt.month, target_dt.day, 0, 0, 0, tzinfo=tz)
+        end_local = start_local + timedelta(days=1)
+
+        start_utc = start_local.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        end_utc = end_local.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        day_name = DAYS_ES.get(target_dt.weekday(), "")
+        month_name = MONTHS_ES.get(target_dt.month, "")
+        human_date = f"{day_name} {target_dt.day} de {month_name}, {target_dt.year}"
+
+        url = f"receipts?created_at_min={start_utc}&created_at_max={end_utc}&limit=250"
+        try:
+            data = loyverse_api_get(url, self.loy_token)
+            receipts = data.get("receipts", [])
+        except Exception as e:
+            print(f"[ERROR] Error consultando recibos del día: {e}")
+            receipts = []
+
+        total_gross = 0.0
+        total_refunds = 0.0
+        ticket_count = 0
+        items_agg = defaultdict(lambda: {"qty": 0, "money": 0.0})
+        payments_agg = defaultdict(float)
+
+        for r in receipts:
+            r_type = r.get("receipt_type")
+            cancelled = bool(r.get("cancelled_at"))
+
+            if cancelled or r_type == "REFUND":
+                total_refunds += r.get("total_money", 0.0)
+                continue
+
+            if r_type == "SALE":
+                ticket_count += 1
+                total_gross += r.get("total_money", 0.0)
+
+                for it in r.get("line_items", []):
+                    name = it.get("item_name", "Prenda")
+                    q = it.get("quantity", 1)
+                    m = it.get("total_money", 0.0)
+                    items_agg[name]["qty"] += q
+                    items_agg[name]["money"] += m
+
+                for p in r.get("payments", []):
+                    p_name = p.get("name") or self.payment_types_cache.get(p.get("payment_type_id"), "Efectivo")
+                    p_amt = p.get("money_amount", 0.0)
+                    payments_agg[p_name] += p_amt
+
+        total_net = total_gross - total_refunds
+        total_pieces = sum(v["qty"] for v in items_agg.values())
+
+        return {
+            "date_human": human_date,
+            "ticket_count": ticket_count,
+            "total_gross": total_gross,
+            "total_net": total_net,
+            "total_refunds": total_refunds,
+            "total_pieces": total_pieces,
+            "items": items_agg,
+            "payments": payments_agg
+        }
+
+    def format_sales_summary_msg(self, stats, title="VENTAS DE HOY"):
+        date_str = stats["date_human"]
+        t_count = stats["ticket_count"]
+        net = stats["total_net"]
+        pieces = stats["total_pieces"]
+
+        if t_count == 0:
+            return (
+                f"📊 <b>{title} - Vonne Boutique</b>\n"
+                f"📅 <i>{date_str}</i>\n\n"
+                f"ℹ️ Aún no se registran tickets de venta en esta fecha.\n\n"
+                f"✨ <i>¡Excelente jornada de trabajo!</i>\n"
+                f"📍 <i>Plaza La Fragua, Saltillo</i>"
+            )
+
+        pay_lines = []
+        for p_name, p_amt in sorted(stats["payments"].items(), key=lambda x: x[1], reverse=True):
+            pay_lines.append(f"• <b>{p_name}:</b> {format_money(p_amt)}")
+        pay_block = "\n".join(pay_lines) if pay_lines else "• Efectivo: $0.00"
+
+        # Top prendas vendidas
+        items_lines = []
+        sorted_items = sorted(stats["items"].items(), key=lambda x: x[1]["qty"], reverse=True)
+        for name, d in sorted_items[:12]:
+            items_lines.append(f"• {d['qty']}x <b>{name}</b> ({format_money(d['money'])})")
+        if len(sorted_items) > 12:
+            remaining = sum(d['qty'] for _, d in sorted_items[12:])
+            items_lines.append(f"<i>... y {remaining} prendas más</i>")
+
+        items_block = "\n".join(items_lines) if items_lines else "• Sin prendas registradas"
+
+        return (
+            f"📊 <b>{title} - Vonne Boutique</b>\n"
+            f"📅 <i>{date_str}</i>\n\n"
+            f"💰 <b>VENTAS TOTALES:</b> <b>{format_money(net)}</b>\n"
+            f"🎟️ <b>Tickets Cobrados:</b> {t_count}\n"
+            f"👗 <b>Prendas Vendidas:</b> {pieces} piezas\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"💳 <b>FORMAS DE PAGO:</b>\n"
+            f"{pay_block}\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"🛍️ <b>PRENDAS VENDIDAS:</b>\n"
+            f"{items_block}\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"📍 <i>Plaza La Fragua, Saltillo</i>"
+        )
+
+    def format_items_list_msg(self, stats):
+        date_str = stats["date_human"]
+        pieces = stats["total_pieces"]
+        if pieces == 0:
+            return (
+                f"👗 <b>PRENDAS VENDIDAS HOY - Vonne Boutique</b>\n"
+                f"📅 <i>{date_str}</i>\n\n"
+                f"ℹ️ Aún no se registran prendas vendidas el día de hoy."
+            )
+
+        sorted_items = sorted(stats["items"].items(), key=lambda x: x[1]["qty"], reverse=True)
+        lines = []
+        for name, d in sorted_items:
+            lines.append(f"• <b>{d['qty']}x</b> {name} — {format_money(d['money'])}")
+
+        return (
+            f"👗 <b>PRENDAS VENDIDAS HOY ({pieces} piezas)</b>\n"
+            f"🏪 <b>Vonne Boutique Saltillo</b>\n"
+            f"📅 <i>{date_str}</i>\n\n"
+            + "\n".join(lines) + "\n\n"
+            f"📍 <i>Plaza La Fragua, Saltillo</i>"
+        )
+
+    def get_drawer_status_msg(self):
+        offset = self.tg_cfg.get("timezone_offset_hours", -6)
+        try:
+            data = loyverse_api_get("shifts?limit=3", self.loy_token)
+            shifts = data.get("shifts", [])
+        except Exception as e:
+            return f"❌ Error consultando el estado de caja: {e}"
+
+        if not shifts:
+            return "ℹ️ No hay registros recientes de turnos de caja en Loyverse."
+
+        # Buscar turno abierto
+        open_shift = next((s for s in shifts if s.get("closed_at") is None), None)
+
+        if open_shift:
+            emp = self.employees_cache.get(open_shift.get("employee_id"), "Vonne Boutique")
+            opened_at = format_iso_time(open_shift.get("opened_at"), offset)
+            start_cash = open_shift.get("starting_cash", 0.0)
+            cash_payments = open_shift.get("cash_payments", 0.0)
+            cash_refunds = open_shift.get("cash_refunds", 0.0)
+            paid_in = open_shift.get("paid_in", 0.0)
+            paid_out = open_shift.get("paid_out", 0.0)
+            expected_cash = open_shift.get("expected_cash", 0.0)
+
+            return (
+                f"💵 <b>ESTADO DE CAJA ACTUAL (Turno Abierto)</b>\n"
+                f"🏪 <b>Vonne Boutique Saltillo</b>\n\n"
+                f"👤 <b>Atendiendo:</b> {emp}\n"
+                f"🕐 <b>Apertura:</b> {opened_at}\n"
+                f"━━━━━━━━━━━━━━━━━━━━\n"
+                f"💵 <b>Fondo Inicial:</b> {format_money(start_cash)}\n"
+                f"💰 <b>Cobros en Efectivo:</b> {format_money(cash_payments - cash_refunds)}\n"
+                f"➕ <b>Entradas:</b> {format_money(paid_in)}\n"
+                f"➖ <b>Salidas:</b> {format_money(paid_out)}\n"
+                f"━━━━━━━━━━━━━━━━━━━━\n"
+                f"📈 <b>Efectivo Esperado en Caja:</b> <b>{format_money(expected_cash)}</b>\n\n"
+                f"📍 <i>Plaza La Fragua, Saltillo</i>"
+            )
+        else:
+            last = shifts[0]
+            emp = self.employees_cache.get(last.get("employee_id"), "Vonne Boutique")
+            closed_at = format_iso_time(last.get("closed_at"), offset)
+            return (
+                f"🔒 <b>ESTADO DE CAJA: CAJA CERRADA</b>\n"
+                f"🏪 <b>Vonne Boutique Saltillo</b>\n\n"
+                f"El último turno fue cerrado por <b>{emp}</b> a las <b>{closed_at}</b>.\n\n"
+                f"<i>En cuanto se abra turno en el punto de venta, se notificará aquí en automático.</i>"
+            )
+
+    def get_help_msg(self):
+        return (
+            f"✨ <b>ASISTENTE INTELIGENTE VONNE BOUTIQUE</b>\n"
+            f"🏪 <i>Loyverse POS & Perchero en Vivo</i>\n\n"
+            f"Puedes escribir comandos directos o preguntarme de forma natural:\n\n"
+            f"📊 <b>Ventas y Rendimiento:</b>\n"
+            f"• <code>/ventas</code> o <code>/hoy</code> : Corte acumulado de hoy\n"
+            f"• <code>/prendas</code> : Lista de prendas vendidas hoy\n"
+            f"• <code>/ayer</code> : Reporte completo de ventas de ayer\n"
+            f"• <code>/semana</code> : Ventas de los últimos 7 días\n"
+            f"• <code>/mes</code> : Ventas de los últimos 30 días\n"
+            f"• <code>/top</code> : Ranking de prendas más vendidas\n\n"
+            f"📦 <b>Inventario y Stock:</b>\n"
+            f"• <code>/stock blazer</code> : Existencias y tallas de una prenda\n"
+            f"• <code>/agotados</code> : Prendas agotadas o por agotarse\n"
+            f"• <code>/caja</code> : Estado de caja y efectivo estimado\n"
+            f"• <code>ticket 3949</code> : Consulta el detalle de un ticket\n\n"
+            f"💬 <b>Preguntas Libres:</b>\n"
+            f"También puedes preguntarme: <i>\"¿Cuánto stock queda de blazer blanco?\"</i>, <i>\"¿Qué precio tiene el vestido?\"</i> o <i>\"¿Cuáles son las prendas más vendidas?\"</i>.\n\n"
+            f"📍 <i>Plaza La Fragua, Saltillo</i>"
+        )
+
+    def process_telegram_commands(self):
+        bot_token = self.tg_cfg.get("bot_token")
+        if not bot_token:
+            return
+
+        last_id = self.state.get("last_update_id", 0)
+        url = f"https://api.telegram.org/bot{bot_token}/getUpdates?offset={last_id + 1}&limit=10&timeout=0"
+
+        try:
+            req = urllib.request.Request(url)
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                updates = data.get("result", [])
+        except Exception as e:
+            return
+
+        if not updates:
+            return
+
+        allowed_chats = set(str(c) for c in self.tg_cfg.get("allowed_chat_ids", ["-5559233999", "549065780"]))
+        main_chat = str(self.tg_cfg.get("chat_id", "-5559233999"))
+        allowed_chats.add(main_chat)
+
+        for u in updates:
+            up_id = u.get("update_id")
+            if up_id > self.state.get("last_update_id", 0):
+                self.state["last_update_id"] = up_id
+                save_json(STATE_PATH, self.state)
+
+            msg = u.get("message") or u.get("channel_post")
+            if not msg:
+                continue
+
+            chat = msg.get("chat", {})
+            sender_chat_id = str(chat.get("id"))
+            raw_text = (msg.get("text") or "").strip()
+            text = raw_text.lower()
+
+            if allowed_chats and sender_chat_id not in allowed_chats:
+                continue
+
+            if not text:
+                continue
+
+            print(f"💬 Mensaje recibido: '{raw_text}' en chat {sender_chat_id}")
+            reply = self.assistant.answer(raw_text)
+            if reply:
+                send_telegram(bot_token, sender_chat_id, reply)
+
+    def run_cycle(self):
+        self.tg_cfg = load_json(TELEGRAM_CONFIG_PATH)
+        self.check_receipts()
+        self.check_shifts()
+
+def send_test_message():
+    tg_cfg = load_json(TELEGRAM_CONFIG_PATH)
+    bot_token = tg_cfg.get("bot_token")
+    chat_id = tg_cfg.get("chat_id")
+
+    if not bot_token or not chat_id or "TU_BOT_TOKEN" in str(bot_token):
+        print("\n❌ Error: Aún no has configurado el bot_token o chat_id en telegram_config.json.")
+        return False
+
+    msg = (
+        f"🤖 <b>¡Conexión Exitosa con Vonne Boutique!</b>\n\n"
+        f"Este bot de Telegram está activo y configurado.\n\n"
+        f"💡 <b>Prueba escribir en el chat:</b>\n"
+        f"• <code>/ventas</code> para ver el corte al momento\n"
+        f"• <code>/prendas</code> para ver prendas vendidas\n"
+        f"• <code>/caja</code> para revisar la caja\n"
+        f"• <code>/ayuda</code> para ver todos los comandos\n\n"
+        f"📍 <i>Plaza La Fragua, Saltillo, Coahuila</i>"
+    )
+    print("Enviando mensaje de prueba a Telegram...")
+    ok = send_telegram(bot_token, chat_id, msg)
+    if ok:
+        print("✅ ¡Mensaje de prueba enviado exitosamente a tu Telegram!")
+    else:
+        print("❌ No se pudo enviar el mensaje. Verifica el token y el chat_id.")
+    return ok
+
+def run_daemon():
+    print("==================================================")
+    print("  Vonne Boutique - Notificador y Bot Interactivo  ")
+    print("==================================================")
+    print("1. Notificaciones automáticas cada 30 segundos.")
+    print("2. Respuestas interactivas a comandos cada 3 segundos (/ventas, /caja, etc).")
+    print("Presiona Ctrl + C para detener.\n")
+
+    notifier = LoyverseTelegramNotifier()
+    loy_interval = notifier.tg_cfg.get("check_interval_seconds", 30)
+    cmd_interval = notifier.tg_cfg.get("command_check_interval_seconds", 3)
+
+    last_loy_check = 0
+
+    while True:
+        try:
+            now = time.time()
+            # 1. Comandos de chat interactivos (rápido)
+            notifier.process_telegram_commands()
+
+            # 2. Monitoreo de Loyverse (cada 30s)
+            if now - last_loy_check >= loy_interval:
+                notifier.run_cycle()
+                last_loy_check = now
+
+        except KeyboardInterrupt:
+            print("\nDeteniendo monitor de Telegram. ¡Hasta pronto!")
+            break
+        except Exception as e:
+            print(f"[ERROR] Error inesperado en ciclo: {e}")
+
+        time.sleep(cmd_interval)
+
+def run_once():
+    notifier = LoyverseTelegramNotifier()
+    notifier.run_cycle()
+    print("Ciclo único completado.")
+
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        cmd = sys.argv[1].lower()
+        if cmd == "--test":
+            send_test_message()
+        elif cmd == "--once":
+            run_once()
+        elif cmd == "--daemon":
+            run_daemon()
+        else:
+            print("Uso: python telegram_notifier.py [--test | --once | --daemon]")
+    else:
+        run_daemon()
