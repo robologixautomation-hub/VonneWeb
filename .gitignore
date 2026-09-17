@@ -1,0 +1,16 @@
+﻿# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+
+# Entornos y temporales
+.env
+.venv
+env/
+venv/
+.DS_Store
+Thumbs.db
+
+# Logs locales
+historial_sincronizacion.log

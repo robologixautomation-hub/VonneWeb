@@ -36,11 +36,11 @@
   <meta name="twitter:description" content="Vestidos de fiesta, conjuntos en tendencia, blazers y fajas moldeadoras en Plaza La Fragua, Saltillo, Coahuila." />
   <meta name="twitter:image" content="https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=1200&q=80" />
 
-  <!-- Optimizaciones de Rendimiento y Core Web Vitals (Preconnect) -->
+  <!-- Optimizaciones de Rendimiento y Core Web Vitals -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
-  <link rel="preconnect" href="https://cdn.tailwindcss.com" />
+  <link rel="preload" as="image" href="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=700&q=75" fetchpriority="high" />
 
   <!-- Schema.org JSON-LD Unificado para Motores de Búsqueda y Modelos de IA (GEO / AI Overviews) -->
   <script type="application/ld+json">
@@ -183,30 +183,8 @@
   }
   </script>
 
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              50: '#faf7f2',
-              100: '#f4efe8',
-              200: '#ebdcd0',
-              300: '#dfc299',
-              400: '#c5a880',
-              500: '#b59265',
-              600: '#8c7355',
-              700: '#68543d',
-              800: '#38342f',
-              900: '#1e1b18',
-            }
-          }
-        }
-      }
-    }
-  </script>
+  <!-- Estilos Compilados de Alta Producción (Tailwind Minificado + Estilos Propios sin JS bloqueante) -->
+  <link rel="stylesheet" href="styles.prod.css" />
 
   <!-- Google Fonts Direct Link (Non-blocking para Core Web Vitals) -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'" />
@@ -215,9 +193,6 @@
   <!-- FontAwesome Íconos (Asincrónico no bloqueante) -->
   <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
   <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" /></noscript>
-
-  <!-- Estilos Personalizados -->
-  <link rel="stylesheet" href="styles.css" />
 </head>
 <body class="bg-brand-50 text-stone-900 antialiased selection:bg-brand-300 selection:text-white pb-16 md:pb-0">
 

@@ -1,0 +1,45 @@
+name: Actualización Automática de Inventario Loyverse
+
+on:
+  schedule:
+    # 17:00 UTC = 11:00 AM (Apertura de tienda) hora del centro de México (UTC-6)
+    # 00:00 UTC = 06:00 PM (Hora pico vespertina) hora del centro de México (UTC-6)
+    - cron: '0 17,0 * * *'
+  # Permite también ejecutar la actualización manualmente desde la pestaña Actions en GitHub
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sincronizar-inventario:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Ejecutar sincronizador de Loyverse
+        env:
+          # Toma el token de GitHub Secrets o del archivo de configuración
+          LOYVERSE_TOKEN: ${{ secrets.LOYVERSE_TOKEN || '' }}
+        run: |
+          python sync_loyverse.py
+
+      - name: Confirmar y publicar cambios en GitHub (desencadena despliegue en Netlify)
+        run: |
+          git config --global user.name "Vonne Boutique Bot"
+          git config --global user.email "bot@vonneboutique.com"
+          git add catalogo_data.js catalogo_vonne.json catalogo_google_drive.csv historial_sincronizacion.log
+          if git diff --staged --quiet; then
+            echo "No se detectaron cambios en el inventario de Loyverse hoy."
+          else
+            git commit -m "Sincronización automática de inventario Loyverse [skip ci]"
+            git push
+            echo "Cambios subidos a GitHub. Netlify desplegará la versión actualizada automáticamente."
+          fi
