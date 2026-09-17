@@ -961,3 +961,22 @@ function setupFaqAccordion() {
     });
   });
 }
+
+function selectCategoryFromOccasion(cat) {
+  currentCategory = cat;
+  const tabs = document.querySelectorAll(".category-tab-btn");
+  tabs.forEach(tab => {
+    if (tab.dataset.category === cat) {
+      tab.classList.add("bg-stone-900", "text-white", "shadow-sm");
+      tab.classList.remove("bg-stone-100", "text-stone-600");
+    } else {
+      tab.classList.remove("bg-stone-900", "text-white", "shadow-sm");
+      tab.classList.add("bg-stone-100", "text-stone-600");
+    }
+  });
+  renderProducts();
+  const catSection = document.getElementById("catalogo");
+  if (catSection) {
+    catSection.scrollIntoView({ behavior: "smooth" });
+  }
+}
