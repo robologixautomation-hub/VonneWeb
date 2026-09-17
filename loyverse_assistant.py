@@ -442,56 +442,102 @@ class LoyverseAssistant:
             )
 
     # -------------------------------------------------------------------------
-    # Búsqueda de Stock y Precios
+    # Búsqueda de Stock, Inventario y Precios
     # -------------------------------------------------------------------------
     def answer_stock_or_price(self, query):
         catalog = self.load_catalog()
+        clean = query.lower().strip()
+        clean = re.sub(r'^/(?:asistente|pregunta|ask|consulta|stock|precio)\s*', '', clean)
+        clean = re.sub(r'@\w+', '', clean).strip()
+        norm = normalize_text(clean)
+
+        # Detectar si pidieron una talla específica (CH, M, G, XL, XXL, etc.)
+        target_size = None
+        m = re.search(r'\b(?:talla\s+)?(xxl|2xl|xl|ch|m|g|unitalla)\b', norm)
+        if m:
+            val = m.group(1).upper()
+            target_size = "XXL" if val == "2XL" else val
+        elif "extra grande" in norm:
+            target_size = "XL"
+        elif "grande" in norm:
+            target_size = "G"
+        elif "mediana" in norm:
+            target_size = "M"
+        elif "chica" in norm:
+            target_size = "CH"
+
         stop_words = {
-            "tienes", "cuanto", "cuánto", "queda", "quedan", "hay", "stock",
-            "precio", "cuesta", "cuestan", "talla", "tallas", "tienen", "de", "la",
-            "el", "los", "las", "un", "una", "en", "por", "favor", "me", "dices",
-            "existencia", "existencias", "disponible", "disponibles", "que"
+            "dame", "le", "el", "la", "los", "las", "un", "una", "de", "en", "por",
+            "favor", "inventario", "stock", "existencias", "disponible", "disponibles",
+            "talla", "tallas", "precio", "cuanto", "cuánto", "queda", "quedan", "hay",
+            "tienes", "tienen", "que", "cuesta", "cuestan", "me", "dices", "ver", "cual"
         }
-        tokens = [t.lower().strip("?,.!") for t in query.split() if len(t) > 1]
-        search_terms = [t for t in tokens if t not in stop_words]
+        tokens = [t.strip("?,.!") for t in norm.split() if len(t) > 1]
+        search_terms = []
+        for t in tokens:
+            if t in stop_words:
+                continue
+            if target_size and t == target_size.lower():
+                continue
+            search_terms.append(t)
         if not search_terms:
-            search_terms = tokens
+            search_terms = [t for t in tokens if t not in stop_words]
 
         scored = []
         for p in catalog:
             text = f"{p.get('nombre', '')} {p.get('codigo', '')} {p.get('categoria', '')}".lower()
             text_norm = normalize_text(text)
+            item_sizes = [s.upper() for s in p.get("tallas", [])]
+
             score = 0
             for term in search_terms:
-                term_norm = normalize_text(term)
-                if term_norm in text_norm:
-                    score += 2 if term_norm in normalize_text(p.get("nombre", "")) else 1
+                if term in text_norm:
+                    score += 3 if term in normalize_text(p.get("nombre", "")) else 1
+
+            if target_size:
+                if target_size in item_sizes:
+                    score += 6
+                else:
+                    score -= 4
+
             if score > 0:
                 scored.append((score, p))
 
         scored.sort(key=lambda x: x[0], reverse=True)
-        matches = [p for _, p in scored[:5]]
+        matches = [p for s, p in scored if s > 0][:5]
 
         if not matches:
             return (
-                "🔍 <b>No encontré esa prenda en el catálogo.</b>\n\n"
+                "🔍 <b>No encontré prendas con ese criterio en el catálogo.</b>\n\n"
                 "Intenta con palabras clave como <i>blazer, faja, vestido, chaleco, blusa, short</i> o el código de prenda (ej. <code>VB-10101</code>)."
             )
 
-        lines = [f"👗 <b>RESULTADOS EN CATÁLOGO ({len(matches)})</b>\n"]
+        filter_label = f" • Talla {target_size}" if target_size else ""
+        lines = [
+            f"📦 <b>INVENTARIO EN TIENDA ({len(matches)} encontradas)</b>\n"
+            f"🏪 <b>Vonne Boutique Saltillo</b>\n"
+            f"🔎 <i>Búsqueda: {clean.capitalize()}{filter_label}</i>\n"
+        ]
+
         for p in matches:
             nombre = p.get("nombre", "Prenda")
             codigo = p.get("codigo", "")
             precio = format_money(p.get("precio", 0))
-            tallas = ", ".join(p.get("tallas", ["UNITALLA"]))
+            tallas_list = p.get("tallas", ["UNITALLA"])
+
+            if target_size:
+                tallas_str = ", ".join([f"<b>[{t}]</b>" if t == target_size else t for t in tallas_list])
+            else:
+                tallas_str = ", ".join(tallas_list)
+
             stock = int(p.get("stock", 0))
             badge = "🟢 Disponible" if stock > 3 else ("🟡 Pocas piezas" if stock > 0 else "🔴 Agotado")
 
             lines.append(
                 f"• <b>{nombre}</b> (<code>{codigo}</code>)\n"
                 f"  💰 <b>Precio:</b> {precio}\n"
-                f"  📏 <b>Tallas:</b> {tallas}\n"
-                f"  📦 <b>Stock:</b> <b>{stock} pzas</b> ({badge})\n"
+                f"  📏 <b>Tallas:</b> {tallas_str}\n"
+                f"  📦 <b>Existencia:</b> <b>{stock} piezas</b> ({badge})\n"
             )
 
         lines.append("📍 <i>Plaza La Fragua, Saltillo</i>")
@@ -564,73 +610,71 @@ class LoyverseAssistant:
         clean = re.sub(r'@\w+', '', clean).strip()
         norm = normalize_text(clean)
 
+        garment_words = [
+            "blazer", "vestido", "falda", "short", "blusa", "chaleco", "capa",
+            "conjunto", "pantalon", "top", "playera", "satin", "gamuza", "mesh",
+            "peluche", "faja", "cinto"
+        ]
+
         # 1. Búsqueda de ticket
-        if re.search(r'\b(?:ticket|recibo|folio)\b', norm) or re.search(r'#\d+', norm):
+        if re.search(r'\b(?:tickets?|recibos?|folios?)\b', norm) or re.search(r'#\d+', norm):
             return self.search_ticket(clean)
 
         # 2. Poco stock / Agotados / Resurtir
-        if any(w in norm for w in ["agotad", "poco stock", "resurt", "por agotarse", "bajo stock", "inventario bajo", "que falta"]):
+        if re.search(r'\b(?:agotad[ao]s?|poco stock|resurtir?|resurtido|por agotarse|bajo stock|inventario bajo|que falta)\b', norm):
             return self.get_low_stock_report()
 
         # 3. Top prendas más vendidas
-        if any(w in norm for w in ["top", "mas vendid", "ranking", "lo que mas", "estrella", "mejores prendas"]):
+        if re.search(r'\b(?:top|mas vendid\w*|ranking|lo que mas|estrella|mejores prendas)\b', norm):
             return self.get_top_sellers(30)
 
         # 4. Consultas relacionadas con AYER
-        if "ayer" in norm:
+        if re.search(r'\bayer\b', norm):
             yesterday = datetime.now(self.tz) - timedelta(days=1)
             stats = self.get_day_sales_summary(yesterday)
-            # ¿Preguntó por prendas o ropa específicamente?
-            if any(w in norm for w in ["prenda", "ropa", "pieza", "articulo", "vendieron", "vendio", "salio", "salieron"]):
+            if re.search(r'\b(?:prendas?|ropa|piezas?|articulos?|vendieron|vendio|salieron?)\b', norm):
                 return self.format_items_list_msg(stats, title="PRENDAS VENDIDAS AYER")
             else:
                 return self.format_sales_summary_msg(stats, title="VENTAS DE AYER")
 
-        # 5. Consultas de SEMANA
-        if any(w in norm for w in ["semana", "7 dias", "ultimos dias"]):
+        # 5. Estado de Caja / Corte (antes de buscar 'hay' o 'cuanto')
+        if re.search(r'\b(?:caja|corte|fondo|cajon)\b', norm) or ("efectivo" in norm and "caja" in norm):
+            return self.get_drawer_status_msg()
+
+        # 6. Consultas de SEMANA
+        if re.search(r'\b(?:semana|7 dias|ultimos dias)\b', norm):
             return self.get_period_sales_summary(7, "ÚLTIMOS 7 DÍAS")
 
-        # 6. Consultas de MES
-        if any(w in norm for w in ["este mes", "mensual", "30 dias", "del mes"]):
+        # 7. Consultas de MES
+        if re.search(r'\b(?:mes|mensual|30 dias|del mes)\b', norm):
             return self.get_period_sales_summary(30, "ÚLTIMOS 30 DÍAS")
 
-        # 7. Consultas relacionadas con HOY o ventas actuales
-        if any(w in norm for w in ["hoy", "dia", "ahorita", "llevamos", "momento", "al momento"]) or any(w in norm for w in ["venta", "vendido", "corte", "como vamos", "como va"]):
-            if any(w in norm for w in ["caja", "corte", "fondo", "efectivo en caja", "cajon"]):
-                return self.get_drawer_status_msg()
+        # 8. Búsqueda de Stock, Inventario o Precios de Prendas (PRIORIDAD SOBRE HOY)
+        has_inv_word = bool(re.search(r'\b(?:inventarios?|stocks?|existencias?|precios?|tallas?|cuanto cuesta|cuanto valen?|tienes?|tienen?|queda|quedan)\b', norm))
+        has_garment_word = any(re.search(r'\b' + g + r'\b', norm) for g in garment_words)
+        if has_inv_word or has_garment_word:
+            return self.answer_stock_or_price(clean)
+
+        # 9. Consultas relacionadas con HOY o ventas actuales (con límites de palabra exactos)
+        if re.search(r'\b(?:hoy|ahorita|llevamos|al momento|ventas?|vendidos?|como vamos|como va)\b', norm):
             stats = self.get_day_sales_summary()
-            if any(w in norm for w in ["prenda", "ropa", "pieza", "articulo", "vendieron", "vendio", "salio", "salieron"]):
+            if re.search(r'\b(?:prendas?|ropa|piezas?|articulos?|vendieron|vendio|salieron?)\b', norm):
                 return self.format_items_list_msg(stats, title="PRENDAS VENDIDAS HOY")
             else:
                 return self.format_sales_summary_msg(stats, title="VENTAS DE HOY")
-
-        # 8. Estado de Caja / Corte
-        if any(w in norm for w in ["caja", "corte", "fondo", "efectivo", "cajon"]):
-            return self.get_drawer_status_msg()
-
-        # 9. Búsqueda de Stock, Precios o Prendas del catálogo
-        garment_keywords = [
-            "stock", "precio", "cuanto", "queda", "hay", "tienes", "tienen", "talla",
-            "blazer", "vestido", "falda", "short", "blusa", "chaleco", "capa",
-            "conjunto", "pantalon", "top", "playera", "satin", "gamuza", "mesh",
-            "peluche", "cinto", "faja"
-        ]
-        if any(w in norm for w in garment_keywords):
-            return self.answer_stock_or_price(clean)
 
         # 10. Fallback: Menú de ayuda amigable
         return (
             f"🤖 <b>Asistente Vonne Boutique - Loyverse POS</b>\n\n"
             f"¡Hola! Puedes preguntarme sobre cualquier tema de la tienda. Por ejemplo:\n\n"
+            f"📦 <b>Inventario y Stock:</b>\n"
+            f"• <i>\"dame el inventario de blazer\"</i>\n"
+            f"• <i>\"inventario de blazer talla XXL\"</i>\n"
+            f"• <i>\"¿Cuánto stock queda de blazer blanco?\"</i>\n\n"
             f"🛍️ <b>Prendas y Ventas:</b>\n"
             f"• <i>\"¿Qué prendas vendieron ayer?\"</i>\n"
             f"• <i>\"¿Qué prendas se han vendido hoy?\"</i>\n"
-            f"• <i>\"¿Cuánto vendimos en la semana?\"</i>\n"
-            f"• <i>\"¿Cuáles son las prendas más vendidas?\"</i>\n\n"
-            f"📦 <b>Stock y Precios:</b>\n"
-            f"• <i>\"¿Cuánto stock queda de blazer blanco?\"</i>\n"
-            f"• <i>\"¿Qué precio tiene el vestido de flores?\"</i>\n"
-            f"• <i>\"¿Qué prendas tienen poco stock o están agotadas?\"</i>\n\n"
+            f"• <i>\"¿Cuáles son las prendas más vendidas del mes?\"</i>\n\n"
             f"💵 <b>Caja y Tickets:</b>\n"
             f"• <i>\"¿Cómo está la caja?\"</i>\n"
             f"• <i>\"Detalle del ticket 3949\"</i>\n\n"
