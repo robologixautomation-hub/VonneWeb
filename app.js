@@ -68,8 +68,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupFaqAccordion();
   setupDriveSyncModal();
 
-  // Cargar catálogo unificado (Loyverse POS e inventario real o Google Drive)
-  await loadCatalog();
+  // Cargar catálogo unificado con prioridad diferida para no competir con el primer renderizado (FCP/LCP)
+  if ("requestIdleCallback" in window) {
+    requestIdleCallback(() => loadCatalog(), { timeout: 200 });
+  } else {
+    setTimeout(() => loadCatalog(), 60);
+  }
 });
 
 // =========================================================================
