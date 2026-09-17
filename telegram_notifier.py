@@ -24,6 +24,7 @@ import urllib.parse
 import urllib.error
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
+from loyverse_assistant import LoyverseAssistant
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -154,6 +155,7 @@ class LoyverseTelegramNotifier:
         })
         self.employees_cache = {}
         self.payment_types_cache = {}
+        self.assistant = LoyverseAssistant(self.loy_token, self.tg_cfg)
         self._load_metadata()
 
     def _load_metadata(self):
@@ -591,13 +593,23 @@ class LoyverseTelegramNotifier:
 
     def get_help_msg(self):
         return (
-            f"✨ <b>COMANDOS DISPONIBLES - Vonne Boutique</b>\n\n"
-            f"Puedes escribir cualquiera de estos mensajes en el grupo:\n\n"
-            f"• <code>/ventas</code> o <code>/hoy</code> : Resumen de ventas, tickets y dinero acumulado hoy.\n"
-            f"• <code>/prendas</code> : Lista completa de prendas vendidas hoy con cantidades.\n"
-            f"• <code>/caja</code> o <code>/corte</code> : Estado de la caja registradora y efectivo actual.\n"
-            f"• <code>/ayer</code> : Reporte completo del día de ayer para comparar.\n"
-            f"• <code>/ayuda</code> : Muestra este menú de opciones.\n\n"
+            f"✨ <b>ASISTENTE INTELIGENTE VONNE BOUTIQUE</b>\n"
+            f"🏪 <i>Loyverse POS & Perchero en Vivo</i>\n\n"
+            f"Puedes escribir comandos directos o preguntarme de forma natural:\n\n"
+            f"📊 <b>Ventas y Rendimiento:</b>\n"
+            f"• <code>/ventas</code> o <code>/hoy</code> : Corte acumulado de hoy\n"
+            f"• <code>/prendas</code> : Lista de prendas vendidas hoy\n"
+            f"• <code>/ayer</code> : Reporte completo de ventas de ayer\n"
+            f"• <code>/semana</code> : Ventas de los últimos 7 días\n"
+            f"• <code>/mes</code> : Ventas de los últimos 30 días\n"
+            f"• <code>/top</code> : Ranking de prendas más vendidas\n\n"
+            f"📦 <b>Inventario y Stock:</b>\n"
+            f"• <code>/stock blazer</code> : Existencias y tallas de una prenda\n"
+            f"• <code>/agotados</code> : Prendas agotadas o por agotarse\n"
+            f"• <code>/caja</code> : Estado de caja y efectivo estimado\n"
+            f"• <code>ticket 3949</code> : Consulta el detalle de un ticket\n\n"
+            f"💬 <b>Preguntas Libres:</b>\n"
+            f"También puedes preguntarme: <i>\"¿Cuánto stock queda de blazer blanco?\"</i>, <i>\"¿Qué precio tiene el vestido?\"</i> o <i>\"¿Cuáles son las prendas más vendidas?\"</i>.\n\n"
             f"📍 <i>Plaza La Fragua, Saltillo</i>"
         )
 
@@ -636,26 +648,25 @@ class LoyverseTelegramNotifier:
 
             chat = msg.get("chat", {})
             sender_chat_id = str(chat.get("id"))
-            text = (msg.get("text") or "").strip().lower()
+            raw_text = (msg.get("text") or "").strip()
+            text = raw_text.lower()
 
-            # Validación de seguridad: permitir responder al grupo autorizado o admin
             if allowed_chats and sender_chat_id not in allowed_chats:
                 continue
 
             if not text:
                 continue
 
-            # Limpiar mención al bot (ej. /ventas@notificacionesvonneboutique_bot)
             text_clean = text.split("@")[0].strip()
 
             if text_clean in ["/ventas", "/hoy", "/resumen", "ventas", "hoy", "resumen", "como vamos", "cómo vamos"]:
-                print(f"📩 Comando recibido: {text} en chat {sender_chat_id}")
+                print(f"📩 Comando /ventas en chat {sender_chat_id}")
                 stats = self.get_day_sales_summary()
                 reply = self.format_sales_summary_msg(stats, title="VENTAS DE HOY")
                 send_telegram(bot_token, sender_chat_id, reply)
 
             elif text_clean in ["/ayer", "ayer"]:
-                print(f"📩 Comando recibido: {text} en chat {sender_chat_id}")
+                print(f"📩 Comando /ayer en chat {sender_chat_id}")
                 offset = self.tg_cfg.get("timezone_offset_hours", -6)
                 tz = timezone(timedelta(hours=offset))
                 yesterday = datetime.now(tz) - timedelta(days=1)
@@ -663,20 +674,46 @@ class LoyverseTelegramNotifier:
                 reply = self.format_sales_summary_msg(stats, title="VENTAS DE AYER")
                 send_telegram(bot_token, sender_chat_id, reply)
 
+            elif text_clean in ["/semana", "semana"]:
+                print(f"📩 Comando /semana en chat {sender_chat_id}")
+                reply = self.assistant.get_period_sales_summary(7, "ÚLTIMOS 7 DÍAS")
+                send_telegram(bot_token, sender_chat_id, reply)
+
+            elif text_clean in ["/mes", "mes"]:
+                print(f"📩 Comando /mes en chat {sender_chat_id}")
+                reply = self.assistant.get_period_sales_summary(30, "ÚLTIMOS 30 DÍAS")
+                send_telegram(bot_token, sender_chat_id, reply)
+
+            elif text_clean in ["/top", "top"]:
+                print(f"📩 Comando /top en chat {sender_chat_id}")
+                reply = self.assistant.get_top_sellers(30)
+                send_telegram(bot_token, sender_chat_id, reply)
+
+            elif text_clean in ["/agotados", "agotados", "poco stock", "inventario bajo"]:
+                print(f"📩 Comando /agotados en chat {sender_chat_id}")
+                reply = self.assistant.get_low_stock_report()
+                send_telegram(bot_token, sender_chat_id, reply)
+
             elif text_clean in ["/prendas", "prendas", "articulos", "artículos", "piezas"]:
-                print(f"📩 Comando recibido: {text} en chat {sender_chat_id}")
+                print(f"📩 Comando /prendas en chat {sender_chat_id}")
                 stats = self.get_day_sales_summary()
                 reply = self.format_items_list_msg(stats)
                 send_telegram(bot_token, sender_chat_id, reply)
 
             elif text_clean in ["/caja", "/corte", "caja", "corte", "turno"]:
-                print(f"📩 Comando recibido: {text} en chat {sender_chat_id}")
+                print(f"📩 Comando /caja en chat {sender_chat_id}")
                 reply = self.get_drawer_status_msg()
                 send_telegram(bot_token, sender_chat_id, reply)
 
             elif text_clean in ["/ayuda", "/help", "/start", "ayuda", "comandos", "menu", "menú"]:
-                print(f"📩 Comando recibido: {text} en chat {sender_chat_id}")
+                print(f"📩 Comando /ayuda en chat {sender_chat_id}")
                 reply = self.get_help_msg()
+                send_telegram(bot_token, sender_chat_id, reply)
+
+            else:
+                # Pregunta en lenguaje natural para el asistente
+                print(f"🤖 Consulta al asistente: '{raw_text}' en chat {sender_chat_id}")
+                reply = self.assistant.answer(raw_text)
                 send_telegram(bot_token, sender_chat_id, reply)
 
     def run_cycle(self):
