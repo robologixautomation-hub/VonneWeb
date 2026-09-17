@@ -800,6 +800,11 @@ ${itemsText}
   window.open(`https://wa.me/${BOUTIQUE_CONFIG.phone}?text=${encodeURIComponent(message)}`, '_blank');
 }
 
+function updateBagUI() {
+  updateBagBadge();
+  renderBagItems();
+}
+
 function setupBagDrawer() {
   const openButtons = document.querySelectorAll(".open-bag-btn");
   const closeButton = document.getElementById("close-bag-btn");
@@ -812,13 +817,23 @@ function setupBagDrawer() {
 
 function openBagDrawer() {
   const drawer = document.getElementById("bag-drawer");
-  if (drawer) drawer.classList.remove("translate-x-full");
+  const backdrop = document.getElementById("bag-drawer-backdrop");
+  if (drawer) {
+    drawer.classList.remove("translate-x-full");
+    drawer.style.transform = "translateX(0)";
+  }
+  if (backdrop) backdrop.classList.remove("hidden");
   document.body.classList.add("overflow-hidden");
 }
 
 function closeBagDrawer() {
   const drawer = document.getElementById("bag-drawer");
-  if (drawer) drawer.classList.add("translate-x-full");
+  const backdrop = document.getElementById("bag-drawer-backdrop");
+  if (drawer) {
+    drawer.classList.add("translate-x-full");
+    drawer.style.transform = "translateX(100%)";
+  }
+  if (backdrop) backdrop.classList.add("hidden");
   document.body.classList.remove("overflow-hidden");
 }
 
