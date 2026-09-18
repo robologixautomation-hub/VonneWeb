@@ -145,13 +145,12 @@
     "precio": 550.0,
     "precio_original": 688,
     "tallas": [
-      "CH",
       "XXL"
     ],
-    "stock": 4.0,
+    "stock": 3.0,
     "etiqueta": "Favorito Saltillo",
     "foto_url": "https://api.loyverse.com/image/a5132ad0-72da-49f2-b99a-d4ea07a8fb36",
-    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: CH, XXL. Consulta existencias en tiempo real por WhatsApp.",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: XXL. Consulta existencias en tiempo real por WhatsApp.",
     "activo": "SI"
   },
   {
@@ -181,25 +180,10 @@
       "XL",
       "XXL"
     ],
-    "stock": 7.0,
+    "stock": 8.0,
     "etiqueta": "Favorito Saltillo",
     "foto_url": "https://api.loyverse.com/image/41a8a312-30b6-4654-8415-7c269d15f412",
     "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: CH, G, XL, XXL. Consulta existencias en tiempo real por WhatsApp.",
-    "activo": "SI"
-  },
-  {
-    "codigo": "VB-10111",
-    "nombre": "Panty Blusa Varias",
-    "categoria": "blusas",
-    "precio": 550.0,
-    "precio_original": 688,
-    "tallas": [
-      "UNITALLA"
-    ],
-    "stock": 56.0,
-    "etiqueta": "En Tienda",
-    "foto_url": "https://api.loyverse.com/image/d32af732-dba3-4ce3-abb4-b47b79bc2a76",
-    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: UNITALLA. Consulta existencias en tiempo real por WhatsApp.",
     "activo": "SI"
   },
   {
@@ -248,21 +232,6 @@
     "activo": "SI"
   },
   {
-    "codigo": "VB-10024",
-    "nombre": "Blazer Café",
-    "categoria": "blazers",
-    "precio": 550.0,
-    "precio_original": 688,
-    "tallas": [
-      "XL"
-    ],
-    "stock": 1.0,
-    "etiqueta": "Favorito Saltillo",
-    "foto_url": "https://api.loyverse.com/image/4c0ac81a-92f5-4ea1-8c91-6345ce4da588",
-    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: XL. Consulta existencias en tiempo real por WhatsApp.",
-    "activo": "SI"
-  },
-  {
     "codigo": "VB-10095",
     "nombre": "Mini Falda Gamuza Con Mini Abertura Al Frente",
     "categoria": "pantalones-faldas",
@@ -306,7 +275,7 @@
       "XL",
       "XXL"
     ],
-    "stock": 137.0,
+    "stock": 136.0,
     "etiqueta": "En Tienda",
     "foto_url": "https://api.loyverse.com/image/1bf8ff31-e1e5-4f7b-8599-64bde52be9c9",
     "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: CH, M, G, XL, XXL. Consulta existencias en tiempo real por WhatsApp.",
@@ -374,7 +343,7 @@
       "XL",
       "XXL"
     ],
-    "stock": 17.0,
+    "stock": 22.0,
     "etiqueta": "Favorito Saltillo",
     "foto_url": "https://api.loyverse.com/image/755b9ee0-cdee-4f13-821a-e3788ea4dfed",
     "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: CH, M, G, XL, XXL. Consulta existencias en tiempo real por WhatsApp.",
