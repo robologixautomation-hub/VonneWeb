@@ -450,6 +450,18 @@ class LoyverseTelegramNotifier:
                         if send_telegram(bot_token, chat_id, msg):
                             print(f"🔔 Notificación de corte de caja enviada: {close_time_str}")
 
+                        # ── Reporte completo de ventas del día ──────────────
+                        try:
+                            stats = self.assistant.get_day_sales_summary()
+                            sales_msg = self.assistant.format_sales_summary_msg(
+                                stats,
+                                title="📋 REPORTE COMPLETO DE VENTAS DEL DÍA"
+                            )
+                            if send_telegram(bot_token, chat_id, sales_msg):
+                                print("🔔 Reporte completo de ventas del día enviado al cerrar caja.")
+                        except Exception as e:
+                            print(f"[ERROR] No se pudo enviar reporte de ventas al cierre: {e}")
+
     # =========================================================================
     # LÓGICA DE REPORTES INTERACTIVOS
     # =========================================================================
@@ -653,6 +665,8 @@ class LoyverseTelegramNotifier:
             f"• <code>/semana</code> : Ventas de los últimos 7 días\n"
             f"• <code>/mes</code> : Ventas de los últimos 30 días\n"
             f"• <code>/top</code> : Ranking de prendas más vendidas\n\n"
+            f"🎯 <b>Marketing & Meta Ads:</b>\n"
+            f"• <code>/ads</code> : Reporte en vivo de Meta Ads (gasto, mensajes y CPA)\n\n"
             f"📦 <b>Inventario y Stock:</b>\n"
             f"• <code>/stock blazer</code> : Existencias y tallas de una prenda\n"
             f"• <code>/agotados</code> : Prendas agotadas o por agotarse\n"
@@ -708,6 +722,17 @@ class LoyverseTelegramNotifier:
                 continue
 
             print(f"💬 Mensaje recibido: '{raw_text}' en chat {sender_chat_id}")
+            
+            # Comando directo de Meta Ads / Campañas
+            if text in ["/ads", "/campanas", "/campañas", "/meta", "/facebook"] or any(k in text for k in ["como van las campañas", "como van las campanas", "reporte ads", "resumen ads", "metricas ads"]):
+                try:
+                    from send_ads_summary_telegram import get_ads_summary_msg
+                    ads_reply = get_ads_summary_msg()
+                    send_telegram(bot_token, sender_chat_id, ads_reply)
+                    continue
+                except Exception as ex:
+                    print(f"Error generando reporte de Ads en Telegram: {ex}")
+
             reply = self.assistant.answer(raw_text, chat_id=sender_chat_id)
             if reply:
                 send_telegram(bot_token, sender_chat_id, reply)
