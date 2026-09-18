@@ -201,7 +201,14 @@ class LoyverseTelegramNotifier:
             "processed_shift_ids": [],
             "known_open_shift_id": None,
             "last_receipt_time": None,
-            "last_update_id": 0
+            "last_update_id": 0,
+            "notified_out_of_stock": [],
+            "notified_low_stock": [],
+            "last_no_sales_alert": None,
+            "first_sale_today_date": None,
+            "last_biweekly_report": None,
+            "last_weekly_report": None,
+            "last_2h_report": None
         })
         self.employees_cache = {}
         self.payment_types_cache = {}
@@ -313,6 +320,45 @@ class LoyverseTelegramNotifier:
                     )
                     if send_telegram(bot_token, chat_id, msg):
                         print(f"🔔 Notificación de venta enviada: #{r_num} ({format_money(total)})")
+
+                    # ── Primera venta del día ──────────────────────────────
+                    offset = self.tg_cfg.get("timezone_offset_hours", -6)
+                    tz_local = timezone(timedelta(hours=offset))
+                    now_local = datetime.now(tz_local)
+                    today_str = now_local.strftime("%Y-%m-%d")
+                    if self.state.get("first_sale_today_date") != today_str:
+                        self.state["first_sale_today_date"] = today_str
+                        first_msg = (
+                            f"🎀 <b>¡PRIMERA VENTA DEL DÍA! — Vonne Boutique</b>\n\n"
+                            f"📄 <b>Ticket:</b> <code>#{r_num}</code>\n"
+                            f"👤 <b>Atendió:</b> {emp_name}\n"
+                            f"💰 <b>Total:</b> <b>{format_money(total)}</b>\n"
+                            f"🕐 <b>Hora:</b> {receipt_time}\n\n"
+                            f"✨ <i>¡A vender mucho hoy!</i>\n"
+                            f"📍 <i>Plaza La Fragua, Saltillo</i>"
+                        )
+                        send_telegram(bot_token, chat_id, first_msg)
+                        print("🎀 Notificación de primera venta del día enviada.")
+
+                    # ── Descuento grande (≥30%) ────────────────────────────
+                    gross = r.get("gross_total_money", 0.0) or r.get("total_money", 0.0)
+                    discount_amt = r.get("discount_total_money", 0.0) or 0.0
+                    discount_pct_threshold = self.tg_cfg.get("discount_alert_pct", 30)
+                    if gross > 0 and discount_amt > 0:
+                        pct = (discount_amt / gross) * 100
+                        if pct >= discount_pct_threshold:
+                            disc_msg = (
+                                f"🏷️ <b>DESCUENTO GRANDE APLICADO</b>\n\n"
+                                f"📄 <b>Ticket:</b> <code>#{r_num}</code>\n"
+                                f"👤 <b>Atendió:</b> {emp_name}\n"
+                                f"━━━━━━━━━━━━━━━━━━━━\n"
+                                f"💸 <b>Descuento:</b> -{format_money(discount_amt)} ({pct:.0f}%)\n"
+                                f"💰 <b>Total cobrado:</b> {format_money(total)}\n"
+                                f"🕐 <b>Hora:</b> {receipt_time}\n"
+                                f"📍 <i>Plaza La Fragua, Saltillo</i>"
+                            )
+                            send_telegram(bot_token, chat_id, disc_msg)
+                            print(f"🏷️ Alerta de descuento grande enviada: #{r_num} ({pct:.0f}%)")
 
             new_processed.append(event_id)
 
@@ -737,10 +783,206 @@ class LoyverseTelegramNotifier:
             if reply:
                 send_telegram(bot_token, sender_chat_id, reply)
 
+    # =========================================================================
+    # ALERTAS DE INVENTARIO Y PAUSA SIN VENTAS
+    # =========================================================================
+
+    def check_inventory_alerts(self):
+        """Detecta prendas agotadas, stock bajo y pausas sin ventas en horario laboral."""
+        if not self.loy_token:
+            return
+        bot_token = self.tg_cfg.get("bot_token")
+        chat_id   = self.tg_cfg.get("chat_id")
+        offset    = self.tg_cfg.get("timezone_offset_hours", -6)
+        tz_local  = timezone(timedelta(hours=offset))
+        now_local = datetime.now(tz_local)
+        today_str = now_local.strftime("%Y-%m-%d")
+        low_threshold = self.tg_cfg.get("low_stock_threshold", 2)
+
+        # Resetear listas si es un nuevo día
+        if self.state.get("_stock_alert_date") != today_str:
+            self.state["notified_out_of_stock"] = []
+            self.state["notified_low_stock"]    = []
+            self.state["last_no_sales_alert"]   = None
+            self.state["_stock_alert_date"]     = today_str
+
+        # ── Stock agotado y stock bajo ─────────────────────────────────────
+        try:
+            inv_data = loyverse_api_get("inventory?limit=250", self.loy_token)
+            items    = inv_data.get("inventory_levels", [])
+
+            notified_out  = set(self.state.get("notified_out_of_stock", []))
+            notified_low  = set(self.state.get("notified_low_stock", []))
+
+            for item in items:
+                variant_id = item.get("variant_id", "")
+                stock      = item.get("in_stock", 0) or 0
+                name       = item.get("item_name") or item.get("variant_name") or "Prenda"
+
+                if stock == 0 and variant_id not in notified_out:
+                    notified_out.add(variant_id)
+                    msg = (
+                        f"🚨 <b>¡PRENDA AGOTADA!</b>\n\n"
+                        f"👗 <b>{name}</b>\n"
+                        f"📦 <b>Stock:</b> 0 piezas\n"
+                        f"⚠️ <i>Ya no hay existencias disponibles para venta.</i>\n"
+                        f"📍 <i>Plaza La Fragua, Saltillo</i>"
+                    )
+                    send_telegram(bot_token, chat_id, msg)
+                    print(f"🚨 Alerta stock agotado: {name}")
+
+                elif 0 < stock <= low_threshold and variant_id not in notified_low and variant_id not in notified_out:
+                    notified_low.add(variant_id)
+                    msg = (
+                        f"⚠️ <b>STOCK BAJO — Últimas piezas</b>\n\n"
+                        f"👗 <b>{name}</b>\n"
+                        f"📦 <b>Stock:</b> {int(stock)} {'pieza' if stock == 1 else 'piezas'} restante{'s' if stock != 1 else ''}\n"
+                        f"🛒 <i>Considera reabastecer pronto.</i>\n"
+                        f"📍 <i>Plaza La Fragua, Saltillo</i>"
+                    )
+                    send_telegram(bot_token, chat_id, msg)
+                    print(f"⚠️ Alerta stock bajo: {name} ({int(stock)} piezas)")
+
+            self.state["notified_out_of_stock"] = list(notified_out)
+            self.state["notified_low_stock"]    = list(notified_low)
+            save_json(STATE_PATH, self.state)
+
+        except Exception as e:
+            print(f"[ERROR] check_inventory_alerts (stock): {e}")
+
+        # ── Alerta: pausa de 2h sin ventas en horario laboral (12pm–8pm) ──
+        try:
+            hora = now_local.hour
+            if 12 <= hora < 20:
+                last_receipt_str = self.state.get("last_receipt_time")
+                last_alert_str   = self.state.get("last_no_sales_alert")
+                if last_receipt_str:
+                    last_receipt_dt = datetime.fromisoformat(
+                        last_receipt_str.replace("Z", "+00:00")
+                    ).astimezone(tz_local)
+                    diff_minutes = (now_local - last_receipt_dt).total_seconds() / 60
+                    # Enviar alerta solo si >120 min sin ventas y aún no se alertó en este período
+                    already_alerted = False
+                    if last_alert_str:
+                        last_alert_dt = datetime.fromisoformat(last_alert_str).astimezone(tz_local)
+                        if (now_local - last_alert_dt).total_seconds() < 7200:
+                            already_alerted = True
+                    if diff_minutes >= 120 and not already_alerted:
+                        horas_str = f"{int(diff_minutes // 60)}h {int(diff_minutes % 60)}min"
+                        msg = (
+                            f"📉 <b>ALERTA: Sin ventas por {horas_str}</b>\n\n"
+                            f"🏪 Vonne Boutique — <i>Plaza La Fragua, Saltillo</i>\n\n"
+                            f"⏰ Última venta registrada: <b>{last_receipt_dt.strftime('%I:%M %p')}</b>\n"
+                            f"🕐 Hora actual: <b>{now_local.strftime('%I:%M %p')}</b>\n\n"
+                            f"<i>¿Todo bien en tienda? Recuerda verificar el punto de venta.</i>"
+                        )
+                        send_telegram(bot_token, chat_id, msg)
+                        self.state["last_no_sales_alert"] = now_local.isoformat()
+                        save_json(STATE_PATH, self.state)
+                        print(f"📉 Alerta: sin ventas por {horas_str}")
+        except Exception as e:
+            print(f"[ERROR] check_inventory_alerts (pausa ventas): {e}")
+
+    # =========================================================================
+    # REPORTES PROGRAMADOS (QUINCENAL, SEMANAL, CADA 2H)
+    # =========================================================================
+
+    def check_scheduled_reports(self):
+        """Envía reportes automáticos: quincenal, semanal (sábado) y acumulado cada 2h."""
+        import calendar as _cal
+        bot_token = self.tg_cfg.get("bot_token")
+        chat_id   = self.tg_cfg.get("chat_id")
+        offset    = self.tg_cfg.get("timezone_offset_hours", -6)
+        tz_local  = timezone(timedelta(hours=offset))
+        now_local = datetime.now(tz_local)
+        today_str = now_local.strftime("%Y-%m-%d")
+        hora      = now_local.hour
+        dia       = now_local.day
+        mes       = now_local.month
+        anio      = now_local.year
+        dow       = now_local.weekday()  # 0=Lun … 5=Sáb … 6=Dom
+
+        # ── Acumulado cada 2 horas: 2pm, 4pm, 6pm, 8pm ────────────────────
+        horas_reporte = [14, 16, 18, 20]
+        if hora in horas_reporte:
+            last_2h = self.state.get("last_2h_report")
+            slot_key = f"{today_str} {hora:02d}"
+            if last_2h != slot_key:
+                try:
+                    stats = self.assistant.get_day_sales_summary()
+                    hora_label = now_local.strftime("%I:%M %p")
+                    sales_msg  = self.assistant.format_sales_summary_msg(
+                        stats,
+                        title=f"⏰ ACUMULADO DEL DÍA — {hora_label}"
+                    )
+                    if send_telegram(bot_token, chat_id, sales_msg):
+                        self.state["last_2h_report"] = slot_key
+                        save_json(STATE_PATH, self.state)
+                        print(f"⏰ Reporte acumulado enviado a las {hora_label}")
+                except Exception as e:
+                    print(f"[ERROR] Reporte cada 2h: {e}")
+
+        # ── Resumen semanal: sábados a las 9pm ─────────────────────────────
+        if dow == 5 and hora == 21:
+            last_weekly = self.state.get("last_weekly_report")
+            if last_weekly != today_str:
+                try:
+                    # Ventas de lunes a hoy (sábado)
+                    start_week = now_local - timedelta(days=5)  # lunes
+                    start_dt   = datetime(start_week.year, start_week.month, start_week.day,
+                                          0, 0, 0, tzinfo=tz_local)
+                    end_dt     = datetime(now_local.year, now_local.month, now_local.day,
+                                          23, 59, 59, tzinfo=tz_local)
+                    sales_msg  = self.assistant.get_date_range_sales_summary(start_dt, end_dt)
+                    week_header = (
+                        f"📊 <b>RESUMEN SEMANAL — Vonne Boutique</b>\n"
+                        f"📅 <i>Lunes {start_dt.strftime('%d/%m')} al Sábado {now_local.strftime('%d/%m/%Y')}</i>\n\n"
+                    )
+                    full_msg = week_header + sales_msg
+                    if send_telegram(bot_token, chat_id, full_msg):
+                        self.state["last_weekly_report"] = today_str
+                        save_json(STATE_PATH, self.state)
+                        print("📊 Resumen semanal enviado.")
+                except Exception as e:
+                    print(f"[ERROR] Resumen semanal: {e}")
+
+        # ── Reporte quincenal: día 15 y último día del mes a las 9pm ───────
+        _, last_day_of_month = _cal.monthrange(anio, mes)
+        is_biweekly_day = (dia == 15 or dia == last_day_of_month)
+        if is_biweekly_day and hora == 21:
+            last_bi = self.state.get("last_biweekly_report")
+            if last_bi != today_str:
+                try:
+                    # Período: 1–15 o 16–último
+                    if dia == 15:
+                        start_day, end_day = 1, 15
+                        periodo_label = f"1 al 15 de {MONTHS_ES.get(mes, '')}"
+                    else:
+                        start_day, end_day = 16, last_day_of_month
+                        periodo_label = f"16 al {last_day_of_month} de {MONTHS_ES.get(mes, '')}"
+
+                    start_dt = datetime(anio, mes, start_day, 0, 0, 0, tzinfo=tz_local)
+                    end_dt   = datetime(anio, mes, end_day,   23, 59, 59, tzinfo=tz_local)
+                    sales_msg = self.assistant.get_date_range_sales_summary(start_dt, end_dt)
+                    bi_header = (
+                        f"📅 <b>REPORTE QUINCENAL — Vonne Boutique</b>\n"
+                        f"🗓️ <i>{periodo_label} {anio}</i>\n\n"
+                    )
+                    full_msg = bi_header + sales_msg
+                    if send_telegram(bot_token, chat_id, full_msg):
+                        self.state["last_biweekly_report"] = today_str
+                        save_json(STATE_PATH, self.state)
+                        print(f"📅 Reporte quincenal enviado ({periodo_label}).")
+                except Exception as e:
+                    print(f"[ERROR] Reporte quincenal: {e}")
+
     def run_cycle(self):
         self.tg_cfg = load_json(TELEGRAM_CONFIG_PATH)
         self.check_receipts()
         self.check_shifts()
+        self.check_inventory_alerts()
+        self.check_scheduled_reports()
+
 
 def send_test_message():
     tg_cfg = load_json(TELEGRAM_CONFIG_PATH)
