@@ -784,11 +784,11 @@ class LoyverseTelegramNotifier:
                 send_telegram(bot_token, sender_chat_id, reply)
 
     # =========================================================================
-    # ALERTAS DE INVENTARIO Y PAUSA SIN VENTAS
+    # ALERTAS DE INVENTARIO
     # =========================================================================
 
     def check_inventory_alerts(self):
-        """Detecta prendas agotadas, stock bajo y pausas sin ventas en horario laboral."""
+        """Detecta prendas agotadas en tiempo real (alerta inmediata)."""
         if not self.loy_token:
             return
         bot_token = self.tg_cfg.get("bot_token")
@@ -797,22 +797,17 @@ class LoyverseTelegramNotifier:
         tz_local  = timezone(timedelta(hours=offset))
         now_local = datetime.now(tz_local)
         today_str = now_local.strftime("%Y-%m-%d")
-        low_threshold = self.tg_cfg.get("low_stock_threshold", 2)
 
         # Resetear listas si es un nuevo día
         if self.state.get("_stock_alert_date") != today_str:
             self.state["notified_out_of_stock"] = []
-            self.state["notified_low_stock"]    = []
-            self.state["last_no_sales_alert"]   = None
             self.state["_stock_alert_date"]     = today_str
 
-        # ── Stock agotado y stock bajo ─────────────────────────────────────
+        # ── Stock agotado: alerta inmediata al llegar a 0 ─────────────────
         try:
             inv_data = loyverse_api_get("inventory?limit=250", self.loy_token)
             items    = inv_data.get("inventory_levels", [])
-
-            notified_out  = set(self.state.get("notified_out_of_stock", []))
-            notified_low  = set(self.state.get("notified_low_stock", []))
+            notified_out = set(self.state.get("notified_out_of_stock", []))
 
             for item in items:
                 variant_id = item.get("variant_id", "")
@@ -831,57 +826,13 @@ class LoyverseTelegramNotifier:
                     send_telegram(bot_token, chat_id, msg)
                     print(f"🚨 Alerta stock agotado: {name}")
 
-                elif 0 < stock <= low_threshold and variant_id not in notified_low and variant_id not in notified_out:
-                    notified_low.add(variant_id)
-                    msg = (
-                        f"⚠️ <b>STOCK BAJO — Últimas piezas</b>\n\n"
-                        f"👗 <b>{name}</b>\n"
-                        f"📦 <b>Stock:</b> {int(stock)} {'pieza' if stock == 1 else 'piezas'} restante{'s' if stock != 1 else ''}\n"
-                        f"🛒 <i>Considera reabastecer pronto.</i>\n"
-                        f"📍 <i>Plaza La Fragua, Saltillo</i>"
-                    )
-                    send_telegram(bot_token, chat_id, msg)
-                    print(f"⚠️ Alerta stock bajo: {name} ({int(stock)} piezas)")
-
             self.state["notified_out_of_stock"] = list(notified_out)
-            self.state["notified_low_stock"]    = list(notified_low)
             save_json(STATE_PATH, self.state)
 
         except Exception as e:
-            print(f"[ERROR] check_inventory_alerts (stock): {e}")
+            print(f"[ERROR] check_inventory_alerts: {e}")
 
-        # ── Alerta: pausa de 2h sin ventas en horario laboral (12pm–8pm) ──
-        try:
-            hora = now_local.hour
-            if 12 <= hora < 20:
-                last_receipt_str = self.state.get("last_receipt_time")
-                last_alert_str   = self.state.get("last_no_sales_alert")
-                if last_receipt_str:
-                    last_receipt_dt = datetime.fromisoformat(
-                        last_receipt_str.replace("Z", "+00:00")
-                    ).astimezone(tz_local)
-                    diff_minutes = (now_local - last_receipt_dt).total_seconds() / 60
-                    # Enviar alerta solo si >120 min sin ventas y aún no se alertó en este período
-                    already_alerted = False
-                    if last_alert_str:
-                        last_alert_dt = datetime.fromisoformat(last_alert_str).astimezone(tz_local)
-                        if (now_local - last_alert_dt).total_seconds() < 7200:
-                            already_alerted = True
-                    if diff_minutes >= 120 and not already_alerted:
-                        horas_str = f"{int(diff_minutes // 60)}h {int(diff_minutes % 60)}min"
-                        msg = (
-                            f"📉 <b>ALERTA: Sin ventas por {horas_str}</b>\n\n"
-                            f"🏪 Vonne Boutique — <i>Plaza La Fragua, Saltillo</i>\n\n"
-                            f"⏰ Última venta registrada: <b>{last_receipt_dt.strftime('%I:%M %p')}</b>\n"
-                            f"🕐 Hora actual: <b>{now_local.strftime('%I:%M %p')}</b>\n\n"
-                            f"<i>¿Todo bien en tienda? Recuerda verificar el punto de venta.</i>"
-                        )
-                        send_telegram(bot_token, chat_id, msg)
-                        self.state["last_no_sales_alert"] = now_local.isoformat()
-                        save_json(STATE_PATH, self.state)
-                        print(f"📉 Alerta: sin ventas por {horas_str}")
-        except Exception as e:
-            print(f"[ERROR] check_inventory_alerts (pausa ventas): {e}")
+
 
     # =========================================================================
     # REPORTES PROGRAMADOS (QUINCENAL, SEMANAL, CADA 2H)
@@ -902,8 +853,49 @@ class LoyverseTelegramNotifier:
         anio      = now_local.year
         dow       = now_local.weekday()  # 0=Lun … 5=Sáb … 6=Dom
 
-        # ── Acumulado cada 2 horas: 2pm, 4pm, 6pm, 8pm ────────────────────
-        horas_reporte = [14, 16, 18, 20]
+        # ── Reporte diario de stock bajo a las 12pm ────────────────────────
+        if hora == 12:
+            last_stock_report = self.state.get("last_stock_low_report")
+            if last_stock_report != today_str:
+                try:
+                    inv_data = loyverse_api_get("inventory?limit=250", self.loy_token)
+                    items    = inv_data.get("inventory_levels", [])
+                    low_threshold = self.tg_cfg.get("low_stock_threshold", 3)
+
+                    low_items = [
+                        (item.get("item_name") or item.get("variant_name") or "Prenda",
+                         int(item.get("in_stock", 0) or 0))
+                        for item in items
+                        if 0 < (item.get("in_stock", 0) or 0) < low_threshold
+                    ]
+                    low_items.sort(key=lambda x: x[1])  # menor stock primero
+
+                    if low_items:
+                        lines = "\n".join(
+                            f"• <b>{name}</b> — {qty} {'pieza' if qty == 1 else 'piezas'}"
+                            for name, qty in low_items
+                        )
+                        msg = (
+                            f"⚠️ <b>REPORTE DE STOCK BAJO — Vonne Boutique</b>\n"
+                            f"📅 <i>{now_local.strftime('%d/%m/%Y')}</i>\n\n"
+                            f"Las siguientes prendas tienen <b>menos de {low_threshold} piezas</b>:\n\n"
+                            f"{lines}\n\n"
+                            f"🛒 <i>Considera reabastecer antes de que se agoten.</i>\n"
+                            f"📍 <i>Plaza La Fragua, Saltillo</i>"
+                        )
+                        if send_telegram(bot_token, chat_id, msg):
+                            self.state["last_stock_low_report"] = today_str
+                            save_json(STATE_PATH, self.state)
+                            print(f"⚠️ Reporte de stock bajo enviado ({len(low_items)} prendas).")
+                    else:
+                        self.state["last_stock_low_report"] = today_str
+                        save_json(STATE_PATH, self.state)
+                        print("✅ Reporte stock bajo: todas las prendas tienen stock suficiente.")
+                except Exception as e:
+                    print(f"[ERROR] Reporte stock bajo: {e}")
+
+        # ── Acumulado del día: 2pm, 4pm y 6pm ─────────────────────────────
+        horas_reporte = [14, 16, 18]
         if hora in horas_reporte:
             last_2h = self.state.get("last_2h_report")
             slot_key = f"{today_str} {hora:02d}"
