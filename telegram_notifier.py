@@ -454,6 +454,23 @@ class LoyverseTelegramNotifier:
                     self.state["processed_shift_ids"] = list(processed_shifts)[-30:]
                     save_json(STATE_PATH, self.state)
 
+                    # ── Filtro de antigüedad: no notificar cortes de hace >90 min ──
+                    is_stale = False
+                    if closed_at:
+                        try:
+                            closed_dt = datetime.fromisoformat(
+                                closed_at.replace("Z", "+00:00")
+                            ).astimezone(timezone.utc)
+                            age_minutes = (datetime.now(timezone.utc) - closed_dt).total_seconds() / 60
+                            if age_minutes > 90:
+                                is_stale = True
+                                print(f"⏭️ Turno #{shift_id} ignorado por antigüedad ({int(age_minutes)} min)")
+                        except Exception:
+                            pass
+
+                    if is_stale:
+                        continue
+
                     notify_close = self.tg_cfg.get("notify_drawer_close", self.tg_cfg.get("notify_shift_close", True))
                     if notify_close:
                         open_time_str = format_iso_time(opened_at, offset)
