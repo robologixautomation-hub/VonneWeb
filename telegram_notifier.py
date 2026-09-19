@@ -192,10 +192,23 @@ DAYS_ES = {
     3: "Jueves", 4: "Viernes", 5: "Sábado", 6: "Domingo"
 }
 
+def get_telegram_config():
+    cfg = load_json(TELEGRAM_CONFIG_PATH)
+    bot_token = os.environ.get("BOT_TOKEN") or os.environ.get("TELEGRAM_BOT_TOKEN")
+    if bot_token:
+        cfg["bot_token"] = bot_token.strip()
+    chat_id = os.environ.get("CHAT_ID") or os.environ.get("TELEGRAM_CHAT_ID")
+    if chat_id:
+        cfg["chat_id"] = chat_id.strip()
+    gemini_key = os.environ.get("GEMINI_API_KEY")
+    if gemini_key:
+        cfg["gemini_api_key"] = gemini_key.strip()
+    return cfg
+
 class LoyverseTelegramNotifier:
     def __init__(self):
         self.loy_token = get_loyverse_token()
-        self.tg_cfg = load_json(TELEGRAM_CONFIG_PATH)
+        self.tg_cfg = get_telegram_config()
         self.state = load_json(STATE_PATH, {
             "processed_receipt_ids": [],
             "processed_shift_ids": [],
@@ -1111,7 +1124,7 @@ class LoyverseTelegramNotifier:
                     print(f"[ERROR] Reporte quincenal: {e}")
 
     def run_cycle(self):
-        self.tg_cfg = load_json(TELEGRAM_CONFIG_PATH)
+        self.tg_cfg = get_telegram_config()
         self.check_receipts()
         self.check_shifts()
         self.check_inventory_alerts()
@@ -1119,7 +1132,7 @@ class LoyverseTelegramNotifier:
 
 
 def send_test_message():
-    tg_cfg = load_json(TELEGRAM_CONFIG_PATH)
+    tg_cfg = get_telegram_config()
     bot_token = tg_cfg.get("bot_token")
     chat_id = tg_cfg.get("chat_id")
 
