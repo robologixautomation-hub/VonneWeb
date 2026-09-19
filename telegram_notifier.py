@@ -919,19 +919,16 @@ class LoyverseTelegramNotifier:
         except Exception as e:
             print(f"[AVISO] No se pudo cargar nombres de variantes: {e}")
 
-        # ── Stock agotado: alerta inmediata al llegar a 0 ─────────────────
+        # ── Stock agotado: alerta agrupada al llegar a 0 ─────────────────
         try:
             inv_data = loyverse_api_get("inventory?limit=250", self.loy_token)
             items    = inv_data.get("inventory_levels", [])
             notified_out = set(self.state.get("notified_out_of_stock", []))
-            sent_this_cycle = 0
+            newly_out_names = []
 
             for item in items:
-                if sent_this_cycle >= 3:  # max 3 alertas por ciclo para evitar flood
-                    break
                 variant_id = item.get("variant_id", "")
                 stock      = item.get("in_stock", 0) or 0
-                # Buscar nombre en catálogo primero, luego en campos del item
                 name = (variant_names.get(variant_id)
                         or item.get("item_name")
                         or item.get("variant_name")
@@ -939,16 +936,20 @@ class LoyverseTelegramNotifier:
 
                 if stock == 0 and variant_id not in notified_out:
                     notified_out.add(variant_id)
-                    msg = (
-                        f"🚨 <b>¡PRENDA AGOTADA!</b>\n\n"
-                        f"👗 <b>{name}</b>\n"
-                        f"📦 <b>Stock:</b> 0 piezas\n"
-                        f"⚠️ <i>Ya no hay existencias disponibles para venta.</i>\n"
-                        f"📍 <i>Plaza La Fragua, Saltillo</i>"
-                    )
-                    send_telegram(bot_token, chat_id, msg)
-                    print(f"🚨 Alerta stock agotado: {name}")
-                    sent_this_cycle += 1
+                    newly_out_names.append(name)
+
+            if newly_out_names:
+                lines = "\n".join(f"• <b>{n}</b>" for n in newly_out_names)
+                count_str = f"{len(newly_out_names)} PRENDAS AGOTADAS" if len(newly_out_names) > 1 else "PRENDA AGOTADA"
+                msg = (
+                    f"🚨 <b>¡{count_str}!</b>\n\n"
+                    f"{lines}\n\n"
+                    f"📦 <b>Stock:</b> 0 piezas\n"
+                    f"⚠️ <i>Ya no hay existencias disponibles para venta.</i>\n"
+                    f"📍 <i>Plaza La Fragua, Saltillo</i>"
+                )
+                send_telegram(bot_token, chat_id, msg)
+                print(f"🚨 Alerta stock agotado agrupada ({len(newly_out_names)} prendas): {', '.join(newly_out_names)}")
 
             self.state["notified_out_of_stock"] = list(notified_out)
             save_json(STATE_PATH, self.state)
