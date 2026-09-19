@@ -16,3 +16,7 @@ Thumbs.db
 historial_sincronizacion.log
 telegram_state.json
 telegram_bot.log
+
+# Credenciales y Configuración privada
+telegram_config.json
+loyverse_config.json
