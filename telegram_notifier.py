@@ -267,9 +267,29 @@ class LoyverseTelegramNotifier:
             if event_id in processed:
                 continue
 
+            # ── Filtro de antigüedad: no notificar tickets de hace >90 min ──
+            created_str = r.get("created_at") or r.get("receipt_date", "")
+            is_stale = False
+            if created_str:
+                try:
+                    created_dt = datetime.fromisoformat(
+                        created_str.replace("Z", "+00:00")
+                    ).astimezone(timezone.utc)
+                    age_minutes = (datetime.now(timezone.utc) - created_dt).total_seconds() / 60
+                    if age_minutes > 90:
+                        is_stale = True
+                        print(f"⏭️ Ticket #{r_num} ignorado (hace {int(age_minutes)} min, bot estaba offline)")
+                except Exception:
+                    pass
+
             emp_name = self.employees_cache.get(r.get("employee_id"), "Vonne Boutique")
             total = r.get("total_money", 0.0)
             receipt_time = format_iso_time(r.get("created_at") or r.get("receipt_date"), offset)
+
+            if is_stale:
+                new_processed.append(event_id)
+                continue
+
 
             # Caso 1: Cancelación
             if cancelled_at or r_type == "REFUND":
@@ -712,7 +732,8 @@ class LoyverseTelegramNotifier:
             f"• <code>/mes</code> : Ventas de los últimos 30 días\n"
             f"• <code>/top</code> : Ranking de prendas más vendidas\n\n"
             f"🎯 <b>Marketing & Meta Ads:</b>\n"
-            f"• <code>/ads</code> : Reporte en vivo de Meta Ads (gasto, mensajes y CPA)\n\n"
+            f"• <code>/ads</code> : Reporte en vivo de Meta Ads (gasto, mensajes y CPA)\n"
+            f"• <code>/roas</code> o <code>/roi</code> : Correlación de Publicidad vs. Ventas en Caja (POS)\n\n"
             f"📦 <b>Inventario y Stock:</b>\n"
             f"• <code>/stock blazer</code> : Existencias y tallas de una prenda\n"
             f"• <code>/agotados</code> : Prendas agotadas o por agotarse\n"
@@ -778,6 +799,16 @@ class LoyverseTelegramNotifier:
                     continue
                 except Exception as ex:
                     print(f"Error generando reporte de Ads en Telegram: {ex}")
+
+            # Comando directo de Correlación Ads vs Ventas POS (ROAS / ROI)
+            if text in ["/roas", "/roi", "/correlacion", "/caja_ads"] or any(k in text for k in ["relacion pauta ventas", "cuanto se vendio de publicidad", "publicidad vs ventas", "retorno publicidad"]):
+                try:
+                    from send_ads_pos_correlation_telegram import generate_correlation_report
+                    corr_reply = generate_correlation_report()
+                    send_telegram(bot_token, sender_chat_id, corr_reply)
+                    continue
+                except Exception as ex:
+                    print(f"Error generando reporte de Correlación en Telegram: {ex}")
 
             reply = self.assistant.answer(raw_text, chat_id=sender_chat_id)
             if reply:
