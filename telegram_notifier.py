@@ -845,23 +845,28 @@ class LoyverseTelegramNotifier:
             self.state["notified_out_of_stock"] = []
             self.state["_stock_alert_date"]     = today_str
 
-        # ── Construir mapa variant_id → nombre desde el catálogo ──────────
+        # ── Construir mapa variant_id → nombre desde Loyverse items API ────
         variant_names = {}
         try:
-            catalog = self.assistant.catalog or {}
-            for item_id, item_data in catalog.items():
-                item_name = item_data.get("name", "")
-                variants  = item_data.get("variants", [])
-                if variants:
-                    for v in variants:
-                        vid   = v.get("id", "")
-                        vname = v.get("name") or item_name
-                        full_name = f"{item_name} — {vname}" if vname and vname != item_name else item_name
-                        variant_names[vid] = full_name.strip(" —")
-                else:
-                    variant_names[item_id] = item_name
-        except Exception:
-            pass
+            page_cursor = None
+            while True:
+                endpoint = "items?limit=250"
+                if page_cursor:
+                    endpoint += f"&cursor={page_cursor}"
+                items_data = loyverse_api_get(endpoint, self.loy_token)
+                for item in items_data.get("items", []):
+                    item_name = item.get("item_name", "")
+                    for v in item.get("variants", []):
+                        vid   = v.get("variant_id", "")
+                        talla = v.get("option1_value") or v.get("option2_value") or ""
+                        full  = f"{item_name} — {talla}".strip(" —") if talla else item_name
+                        variant_names[vid] = full
+                cursor = items_data.get("cursor")
+                if not cursor:
+                    break
+                page_cursor = cursor
+        except Exception as e:
+            print(f"[AVISO] No se pudo cargar nombres de variantes: {e}")
 
         # ── Stock agotado: alerta inmediata al llegar a 0 ─────────────────
         try:
