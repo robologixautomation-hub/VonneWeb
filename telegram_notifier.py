@@ -1087,7 +1087,30 @@ def run_daemon():
     loy_interval = notifier.tg_cfg.get("check_interval_seconds", 30)
     cmd_interval = notifier.tg_cfg.get("command_check_interval_seconds", 3)
 
+    # ── Notificación de reinicio ───────────────────────────────────────────
+    try:
+        offset    = notifier.tg_cfg.get("timezone_offset_hours", -6)
+        tz_local  = timezone(timedelta(hours=offset))
+        now_local = datetime.now(tz_local)
+        hora_str  = now_local.strftime("%I:%M %p")
+        fecha_str = now_local.strftime("%d/%m/%Y")
+        restart_msg = (
+            f"🔄 <b>BOT REINICIADO — Vonne Boutique</b>\n\n"
+            f"✅ El notificador de Telegram volvió a estar activo.\n"
+            f"🕐 <b>Hora de reinicio:</b> {hora_str}\n"
+            f"📅 <b>Fecha:</b> {fecha_str}\n\n"
+            f"<i>Las notificaciones de ventas, caja y alertas continúan funcionando con normalidad.</i>\n"
+            f"📍 <i>Plaza La Fragua, Saltillo</i>"
+        )
+        bot_token = notifier.tg_cfg.get("bot_token")
+        chat_id   = notifier.tg_cfg.get("chat_id")
+        send_telegram(bot_token, chat_id, restart_msg)
+        print(f"🔄 Notificación de reinicio enviada a las {hora_str}")
+    except Exception as e:
+        print(f"[AVISO] No se pudo enviar notificación de reinicio: {e}")
+
     last_loy_check = 0
+
 
     while True:
         try:
