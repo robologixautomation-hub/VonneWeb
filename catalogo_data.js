@@ -340,14 +340,13 @@ window.VONNE_CATALOGO_DATA = [
     "tallas": [
       "CH",
       "M",
-      "G",
       "XL",
       "XXL"
     ],
     "stock": 21.0,
     "etiqueta": "Favorito Saltillo",
     "foto_url": "https://api.loyverse.com/image/755b9ee0-cdee-4f13-821a-e3788ea4dfed",
-    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: CH, M, G, XL, XXL. Consulta existencias en tiempo real por WhatsApp.",
+    "descripcion": "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo. Tallas: CH, M, XL, XXL. Consulta existencias en tiempo real por WhatsApp.",
     "activo": "SI"
   },
   {
