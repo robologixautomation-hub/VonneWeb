@@ -818,10 +818,21 @@ class LoyverseTelegramNotifier:
     # ALERTAS DE INVENTARIO
     # =========================================================================
 
+    _startup_time = None  # se setea al inicio del daemon
+
     def check_inventory_alerts(self):
         """Detecta prendas agotadas en tiempo real (alerta inmediata)."""
         if not self.loy_token:
             return
+
+        # ── Período de gracia al arrancar: esperar 3 min antes de alertar ──
+        import time as _time
+        if LoyverseTelegramNotifier._startup_time is None:
+            LoyverseTelegramNotifier._startup_time = _time.time()
+        uptime_seconds = _time.time() - LoyverseTelegramNotifier._startup_time
+        if uptime_seconds < 180:
+            return  # silencio durante los primeros 3 minutos
+
         bot_token = self.tg_cfg.get("bot_token")
         chat_id   = self.tg_cfg.get("chat_id")
         offset    = self.tg_cfg.get("timezone_offset_hours", -6)
@@ -829,21 +840,46 @@ class LoyverseTelegramNotifier:
         now_local = datetime.now(tz_local)
         today_str = now_local.strftime("%Y-%m-%d")
 
-        # Resetear listas si es un nuevo día
+        # Resetear lista si es un nuevo día
         if self.state.get("_stock_alert_date") != today_str:
             self.state["notified_out_of_stock"] = []
             self.state["_stock_alert_date"]     = today_str
+
+        # ── Construir mapa variant_id → nombre desde el catálogo ──────────
+        variant_names = {}
+        try:
+            catalog = self.assistant.catalog or {}
+            for item_id, item_data in catalog.items():
+                item_name = item_data.get("name", "")
+                variants  = item_data.get("variants", [])
+                if variants:
+                    for v in variants:
+                        vid   = v.get("id", "")
+                        vname = v.get("name") or item_name
+                        full_name = f"{item_name} — {vname}" if vname and vname != item_name else item_name
+                        variant_names[vid] = full_name.strip(" —")
+                else:
+                    variant_names[item_id] = item_name
+        except Exception:
+            pass
 
         # ── Stock agotado: alerta inmediata al llegar a 0 ─────────────────
         try:
             inv_data = loyverse_api_get("inventory?limit=250", self.loy_token)
             items    = inv_data.get("inventory_levels", [])
             notified_out = set(self.state.get("notified_out_of_stock", []))
+            sent_this_cycle = 0
 
             for item in items:
+                if sent_this_cycle >= 3:  # max 3 alertas por ciclo para evitar flood
+                    break
                 variant_id = item.get("variant_id", "")
                 stock      = item.get("in_stock", 0) or 0
-                name       = item.get("item_name") or item.get("variant_name") or "Prenda"
+                # Buscar nombre en catálogo primero, luego en campos del item
+                name = (variant_names.get(variant_id)
+                        or item.get("item_name")
+                        or item.get("variant_name")
+                        or "Prenda desconocida")
 
                 if stock == 0 and variant_id not in notified_out:
                     notified_out.add(variant_id)
@@ -856,12 +892,15 @@ class LoyverseTelegramNotifier:
                     )
                     send_telegram(bot_token, chat_id, msg)
                     print(f"🚨 Alerta stock agotado: {name}")
+                    sent_this_cycle += 1
 
             self.state["notified_out_of_stock"] = list(notified_out)
             save_json(STATE_PATH, self.state)
 
         except Exception as e:
             print(f"[ERROR] check_inventory_alerts: {e}")
+
+
 
 
 
