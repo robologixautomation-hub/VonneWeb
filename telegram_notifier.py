@@ -889,17 +889,9 @@ class LoyverseTelegramNotifier:
     _startup_time = None  # se setea al inicio del daemon
 
     def check_inventory_alerts(self):
-        """Detecta prendas agotadas en tiempo real (alerta inmediata)."""
+        """Detecta prendas agotadas en tiempo real cuando cambian a 0 stock."""
         if not self.loy_token:
             return
-
-        # ── Período de gracia al arrancar: esperar 3 min antes de alertar ──
-        import time as _time
-        if LoyverseTelegramNotifier._startup_time is None:
-            LoyverseTelegramNotifier._startup_time = _time.time()
-        uptime_seconds = _time.time() - LoyverseTelegramNotifier._startup_time
-        if uptime_seconds < 180:
-            return  # silencio durante los primeros 3 minutos
 
         bot_token = self.tg_cfg.get("bot_token")
         chat_id   = self.tg_cfg.get("chat_id")
@@ -907,11 +899,6 @@ class LoyverseTelegramNotifier:
         tz_local  = timezone(timedelta(hours=offset))
         now_local = datetime.now(tz_local)
         today_str = now_local.strftime("%Y-%m-%d")
-
-        # Resetear lista si es un nuevo día
-        if self.state.get("_stock_alert_date") != today_str:
-            self.state["notified_out_of_stock"] = []
-            self.state["_stock_alert_date"]     = today_str
 
         # ── Construir mapa variant_id → nombre desde Loyverse items API ────
         variant_names = {}
@@ -936,11 +923,12 @@ class LoyverseTelegramNotifier:
         except Exception as e:
             print(f"[AVISO] No se pudo cargar nombres de variantes: {e}")
 
-        # ── Stock agotado: alerta agrupada al llegar a 0 ─────────────────
+        # ── Stock agotado: detectar transiciones a 0 ──────────────────────
         try:
             inv_data = loyverse_api_get("inventory?limit=250", self.loy_token)
             items    = inv_data.get("inventory_levels", [])
             notified_out = set(self.state.get("notified_out_of_stock", []))
+            is_first_run = not self.state.get("inventory_initialized", False)
             newly_out_names = []
 
             for item in items:
@@ -951,11 +939,21 @@ class LoyverseTelegramNotifier:
                         or item.get("variant_name")
                         or "Prenda desconocida")
 
-                if stock == 0 and variant_id not in notified_out:
-                    notified_out.add(variant_id)
-                    newly_out_names.append(name)
+                if stock == 0:
+                    if variant_id not in notified_out:
+                        notified_out.add(variant_id)
+                        if not is_first_run:
+                            newly_out_names.append(name)
+                else:
+                    # Si volvió a tener stock (reabastecimiento), quitar de notificados
+                    if variant_id in notified_out:
+                        notified_out.remove(variant_id)
 
-            if newly_out_names:
+            if is_first_run:
+                self.state["inventory_initialized"] = True
+                print(f"ℹ️ Estado de inventario inicializado en silencio ({len(notified_out)} prendas en 0 stock).")
+
+            if newly_out_names and not is_first_run:
                 lines = "\n".join(f"• <b>{n}</b>" for n in newly_out_names)
                 count_str = f"{len(newly_out_names)} PRENDAS AGOTADAS" if len(newly_out_names) > 1 else "PRENDA AGOTADA"
                 msg = (
