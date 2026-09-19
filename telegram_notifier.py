@@ -513,20 +513,71 @@ class LoyverseTelegramNotifier:
                             f"━━━━━━━━━━━━━━━━━━━━\n"
                             f"📍 <i>Plaza La Fragua, Saltillo</i>"
                         )
-                        if send_telegram(bot_token, chat_id, msg):
-                            print(f"🔔 Notificación de corte de caja enviada: {close_time_str}")
-
-                        # ── Reporte completo de ventas del día ──────────────
+                        # ── Reporte completo combinado al cierre ──────────
                         try:
-                            stats = self.assistant.get_day_sales_summary()
-                            sales_msg = self.assistant.format_sales_summary_msg(
-                                stats,
-                                title="📋 REPORTE COMPLETO DE VENTAS DEL DÍA"
+                            stats      = self.assistant.get_day_sales_summary()
+                            date_str   = stats.get("date_human", close_time_str)
+                            net        = stats.get("net", 0.0)
+                            t_count    = stats.get("ticket_count", 0)
+                            pieces     = stats.get("total_pieces", 0)
+                            pay_totals = stats.get("payments", {})
+                            items_dict = stats.get("items", {})
+
+                            # Formas de pago
+                            pay_lines_sales = []
+                            for pname, pamount in pay_totals.items():
+                                if pamount > 0:
+                                    pay_lines_sales.append(f"• {pname}: {format_money(pamount)}")
+                            pay_block_sales = "\n".join(pay_lines_sales) if pay_lines_sales else f"• {payments_block}"
+
+                            # Prendas vendidas
+                            sorted_items = sorted(items_dict.items(), key=lambda x: x[1]["qty"], reverse=True)
+                            item_lines = []
+                            for iname, d in sorted_items[:15]:
+                                item_lines.append(f"• {d['qty']}x <b>{iname}</b> ({format_money(d['money'])})")
+                            if len(sorted_items) > 15:
+                                extra = sum(d['qty'] for _, d in sorted_items[15:])
+                                item_lines.append(f"<i>... y {extra} prendas más</i>")
+                            items_block_sales = "\n".join(item_lines) if item_lines else "• Sin prendas registradas"
+
+                            combined_msg = (
+                                f"🔒 <b>CORTE DE CAJA / CIERRE DEL DÍA</b>\n"
+                                f"🏪 <b>Vonne Boutique Saltillo</b>\n\n"
+                                f"👤 <b>Cajero/a:</b> {emp_name}\n"
+                                f"📅 <b>Período:</b> {open_time_str} ➡️ {close_time_str}\n"
+                                f"━━━━━━━━━━━━━━━━━━━━\n"
+                                f"📊 <b>RESUMEN DE VENTAS</b>\n"
+                                f"• Ventas Brutas: {format_money(gross_sales)}\n"
+                                f"• Descuentos: -{format_money(discounts)}\n"
+                                f"• Devoluciones: -{format_money(refunds)}\n"
+                                f"💰 <b>VENTAS NETAS: {format_money(net_sales)}</b>\n"
+                                f"━━━━━━━━━━━━━━━━━━━━\n"
+                                f"💳 <b>DESGLOSE POR FORMA DE PAGO</b>\n"
+                                f"{payments_block}\n"
+                                f"━━━━━━━━━━━━━━━━━━━━\n"
+                                f"💵 <b>CONTROL DE EFECTIVO EN CAJA</b>\n"
+                                f"• Fondo Inicial: {format_money(start_cash)}\n"
+                                f"• Cobros en Efectivo: {format_money(cash_payments - cash_refunds)}\n"
+                                f"• Entradas de Caja: +{format_money(paid_in)}\n"
+                                f"• Salidas de Caja: -{format_money(paid_out)}\n"
+                                f"• Efectivo Esperado: {format_money(expected_cash)}\n"
+                                f"• <b>Efectivo Real Contado: {format_money(actual_cash)}</b>\n"
+                                f"⚖️ <b>Estado del Cuadre:</b> {diff_badge}\n"
+                                f"━━━━━━━━━━━━━━━━━━━━\n"
+                                f"🎟️ <b>Tickets Cobrados:</b> {t_count}  |  👗 <b>Prendas:</b> {pieces} piezas\n"
+                                f"━━━━━━━━━━━━━━━━━━━━\n"
+                                f"🛍️ <b>PRENDAS VENDIDAS:</b>\n"
+                                f"{items_block_sales}\n"
+                                f"━━━━━━━━━━━━━━━━━━━━\n"
+                                f"📍 <i>Plaza La Fragua, Saltillo</i>"
                             )
-                            if send_telegram(bot_token, chat_id, sales_msg):
-                                print("🔔 Reporte completo de ventas del día enviado al cerrar caja.")
+                            if send_telegram(bot_token, chat_id, combined_msg):
+                                print(f"🔔 Mensaje de cierre combinado enviado: {close_time_str}")
                         except Exception as e:
-                            print(f"[ERROR] No se pudo enviar reporte de ventas al cierre: {e}")
+                            # Si falla el combinado, mandar solo el corte de caja
+                            print(f"[ERROR] Reporte combinado de cierre: {e}")
+                            if send_telegram(bot_token, chat_id, msg):
+                                print(f"🔔 Notificación de corte de caja (fallback) enviada: {close_time_str}")
 
     # =========================================================================
     # LÓGICA DE REPORTES INTERACTIVOS
