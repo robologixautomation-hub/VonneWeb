@@ -918,7 +918,19 @@ class LoyverseTelegramNotifier:
 
             print(f"💬 Mensaje recibido: '{raw_text}' en chat {sender_chat_id}")
             
-            # Comando directo de Meta Ads / Campañas (coincidencia amplia)
+            # 1. Comando directo de Correlación Ads vs Ventas POS (ROAS / ROI)
+            if any(k in text for k in ["/roas", "/roi", "/correlacion", "/caja_ads", "publicidad vs ventas", "ventas vs publicidad", "relacion pauta ventas", "cuanto se vendio de publicidad", "retorno publicidad"]):
+                try:
+                    import importlib
+                    import send_ads_pos_correlation_telegram
+                    importlib.reload(send_ads_pos_correlation_telegram)
+                    corr_reply = send_ads_pos_correlation_telegram.generate_correlation_report()
+                    if send_telegram(bot_token, sender_chat_id, corr_reply):
+                        continue
+                except Exception as ex:
+                    print(f"Error generando reporte de Correlación en Telegram: {ex}")
+
+            # 2. Comando directo de Meta Ads / Campañas (coincidencia amplia)
             if any(k in text for k in ["/ads", "/campanas", "/campañas", "/meta", "/facebook", "campana", "campaña", "campanas", "campañas", "anuncio", "anuncios", "publicidad", "pauta", "ads"]):
                 try:
                     import importlib
@@ -929,18 +941,6 @@ class LoyverseTelegramNotifier:
                         continue
                 except Exception as ex:
                     print(f"Error generando reporte de Ads en Telegram: {ex}")
-
-            # Comando directo de Correlación Ads vs Ventas POS (ROAS / ROI)
-            if text in ["/roas", "/roi", "/correlacion", "/caja_ads"] or any(k in text for k in ["relacion pauta ventas", "cuanto se vendio de publicidad", "publicidad vs ventas", "retorno publicidad"]):
-                try:
-                    import importlib
-                    import send_ads_pos_correlation_telegram
-                    importlib.reload(send_ads_pos_correlation_telegram)
-                    corr_reply = send_ads_pos_correlation_telegram.generate_correlation_report()
-                    if send_telegram(bot_token, sender_chat_id, corr_reply):
-                        continue
-                except Exception as ex:
-                    print(f"Error generando reporte de Correlación en Telegram: {ex}")
 
             reply = self.assistant.answer(raw_text, chat_id=sender_chat_id)
             if not reply:

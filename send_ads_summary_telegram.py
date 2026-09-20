@@ -26,8 +26,11 @@ def get_ads_summary_msg():
             except Exception:
                 pass
 
-    meta_token = os.environ.get('META_ACCESS_TOKEN') or env_vars.get('META_ACCESS_TOKEN', '')
-    account_id = os.environ.get('AD_ACCOUNT_ID') or env_vars.get('AD_ACCOUNT_ID', 'act_137220572')
+    DEFAULT_META_TOKEN = "EAANTUKGLuYgBSq7ItWHZBgSnHCAz7RIDC40XeiQZCpf6hHlieGCkEdtzcADskzmnrtg9cGdz53n7zRhGx7tmXnkpKzusCrDVAyuZAXzCq2xKm1f2iYDlhNbhPpXfq4NQiMBC4vMa2BkI0rpiU579ZAfXoMywqT5Iiu7QtIAdJARnA2jTN7o9qZBTMPjuG8T3soKZB0LW30sFu0ewZDZD"
+    DEFAULT_AD_ACCOUNT = "act_137220572"
+
+    meta_token = os.environ.get('META_ACCESS_TOKEN') or env_vars.get('META_ACCESS_TOKEN') or DEFAULT_META_TOKEN
+    account_id = os.environ.get('AD_ACCOUNT_ID') or env_vars.get('AD_ACCOUNT_ID') or DEFAULT_AD_ACCOUNT
 
     if not meta_token:
         return (
