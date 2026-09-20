@@ -73,8 +73,19 @@ def normalize_text(text):
     return t.strip()
 
 class LoyverseAssistant:
-    def __init__(self, loy_token, tg_cfg=None):
-        self.loy_token = loy_token
+    def __init__(self, loy_token=None, tg_cfg=None):
+        if not loy_token or not isinstance(loy_token, str) or not loy_token.strip():
+            loy_token = os.environ.get("LOYVERSE_TOKEN", "").strip()
+        if not loy_token and os.path.exists(LOYVERSE_CONFIG_PATH):
+            try:
+                with open(LOYVERSE_CONFIG_PATH, "r", encoding="utf-8") as f:
+                    cfg = json.load(f)
+                    loy_token = cfg.get("token", "").strip()
+            except Exception:
+                pass
+        if not loy_token:
+            loy_token = "d746792798aa4c43888f0aa01b6351b1"
+        self.loy_token = loy_token.strip()
         self.tg_cfg = tg_cfg or {}
         self.offset_hours = self.tg_cfg.get("timezone_offset_hours", -6)
         self.tz = timezone(timedelta(hours=self.offset_hours))

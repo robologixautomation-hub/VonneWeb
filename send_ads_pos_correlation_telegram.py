@@ -9,18 +9,28 @@ def generate_correlation_report():
     # 1. Credentials
     loyverse_token = 'd746792798aa4c43888f0aa01b6351b1'
 
-    env_path = r'C:\Users\PC3\.gemini\antigravity\scratch\vonne-marketing-agent\.env'
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    possible_envs = [
+        os.path.join(base_dir, ".env"),
+        r"C:\Users\PC3\.gemini\antigravity\scratch\vonne-marketing-agent\.env",
+        r"C:\Users\PC3\Documents\Antigravity\Vonne boutique\Facebook_AI_Comentarios\.env"
+    ]
     env_vars = {}
-    if os.path.exists(env_path):
-        with open(env_path, encoding='utf-8') as f:
-            for line in f:
-                line = line.strip()
-                if '=' in line and not line.startswith('#'):
-                    k, v = line.split('=', 1)
-                    env_vars[k] = v
+    for ep in possible_envs:
+        if os.path.exists(ep):
+            try:
+                with open(ep, encoding='utf-8') as f:
+                    for line in f:
+                        line = line.strip()
+                        if '=' in line and not line.startswith('#'):
+                            k, v = line.split('=', 1)
+                            if k.strip() not in env_vars:
+                                env_vars[k.strip()] = v.strip()
+            except Exception:
+                pass
 
-    meta_token = env_vars.get('META_ACCESS_TOKEN', '')
-    account_id = env_vars.get('AD_ACCOUNT_ID', 'act_137220572')
+    meta_token = os.environ.get('META_ACCESS_TOKEN') or env_vars.get('META_ACCESS_TOKEN', '')
+    account_id = os.environ.get('AD_ACCOUNT_ID') or env_vars.get('AD_ACCOUNT_ID', 'act_137220572')
 
     # 2. Fechas para corte de hoy (UTC-6)
     today_dt = datetime.date.today()

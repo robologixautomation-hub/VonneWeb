@@ -18,6 +18,16 @@ Funciones:
 import os
 import sys
 import time
+
+# Redirección segura para pythonw.exe (evitar NoneType write error)
+if sys.stdout is None or sys.stderr is None:
+    _log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "telegram_bot.log")
+    try:
+        _lf = open(_log_path, "a", encoding="utf-8", errors="replace")
+        sys.stdout = _lf
+        sys.stderr = _lf
+    except Exception:
+        pass
 import json
 import urllib.request
 import urllib.parse
@@ -105,7 +115,10 @@ def get_loyverse_token():
     if env_token:
         return env_token
     cfg = load_json(LOYVERSE_CONFIG_PATH)
-    return cfg.get("token", "").strip()
+    token = cfg.get("token", "").strip()
+    if token:
+        return token
+    return "d746792798aa4c43888f0aa01b6351b1"
 
 def loyverse_api_get(endpoint, token):
     url = f"https://api.loyverse.com/v1.0/{endpoint}"
@@ -896,8 +909,10 @@ class LoyverseTelegramNotifier:
             # Comando directo de Meta Ads / Campañas (coincidencia amplia)
             if any(k in text for k in ["/ads", "/campanas", "/campañas", "/meta", "/facebook", "campana", "campaña", "campanas", "campañas", "anuncio", "anuncios", "publicidad", "pauta", "ads"]):
                 try:
-                    from send_ads_summary_telegram import get_ads_summary_msg
-                    ads_reply = get_ads_summary_msg()
+                    import importlib
+                    import send_ads_summary_telegram
+                    importlib.reload(send_ads_summary_telegram)
+                    ads_reply = send_ads_summary_telegram.get_ads_summary_msg()
                     if send_telegram(bot_token, sender_chat_id, ads_reply):
                         continue
                 except Exception as ex:
@@ -906,8 +921,10 @@ class LoyverseTelegramNotifier:
             # Comando directo de Correlación Ads vs Ventas POS (ROAS / ROI)
             if text in ["/roas", "/roi", "/correlacion", "/caja_ads"] or any(k in text for k in ["relacion pauta ventas", "cuanto se vendio de publicidad", "publicidad vs ventas", "retorno publicidad"]):
                 try:
-                    from send_ads_pos_correlation_telegram import generate_correlation_report
-                    corr_reply = generate_correlation_report()
+                    import importlib
+                    import send_ads_pos_correlation_telegram
+                    importlib.reload(send_ads_pos_correlation_telegram)
+                    corr_reply = send_ads_pos_correlation_telegram.generate_correlation_report()
                     if send_telegram(bot_token, sender_chat_id, corr_reply):
                         continue
                 except Exception as ex:
