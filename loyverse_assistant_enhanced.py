@@ -398,17 +398,21 @@ def enhanced_answer(assistant, text, chat_id="default"):
             reply = assistant.ask_gemini(text, chat_id=chat_id)
             if reply:
                 return reply
-        return show_help()
+        return show_help(text)
 
 
-def show_help():
-    """Menú de ayuda"""
+def show_help(user_text=None):
+    """Menú de ayuda / no entendido"""
+    prefix = ""
+    if user_text:
+        prefix = f"🤔 <b>No logré interpretar la consulta:</b> <i>\"{user_text}\"</i>\n\n"
     return (
+        f"{prefix}"
         f"🤖 <b>Asistente Vonne Boutique v2.4</b>\n\n"
-        f"Entiendo preguntas naturales sobre:\n\n"
+        f"Prueba con estas frases o comandos:\n\n"
+        f"📊 <b>Ventas:</b> 'Cuánto vendimos hoy', 'Ventas de ayer'\n"
+        f"🎯 <b>Marketing:</b> 'Campañas de hoy', 'Revisa los anuncios', 'Reporte ads'\n"
         f"📦 <b>Inventario:</b> 'Stock bajo', 'Qué falta resurtir', 'Agotados'\n"
-        f"📊 <b>Ventas:</b> 'Cuánto vendimos hoy', 'Ventas de ayer', 'Del 7 al 17 de septiembre'\n"
-        f"💰 <b>Costos:</b> 'Cuánto costó este vestido', 'Margen del blazer'\n"
         f"💵 <b>Caja:</b> 'Cómo está la caja', 'Estado de caja'\n"
         f"🏆 <b>Top:</b> 'Prendas más vendidas', 'Bestsellers'\n"
         f"🎫 <b>Tickets:</b> 'Detalle del ticket 1234'\n\n"

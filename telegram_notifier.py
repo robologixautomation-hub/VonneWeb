@@ -899,7 +899,7 @@ class LoyverseTelegramNotifier:
             reply = self.assistant.answer(raw_text, chat_id=sender_chat_id)
             if not reply:
                 from loyverse_assistant_enhanced import show_help
-                reply = show_help()
+                reply = show_help(raw_text)
             send_telegram(bot_token, sender_chat_id, reply)
 
     # =========================================================================
