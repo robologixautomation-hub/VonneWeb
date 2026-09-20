@@ -196,6 +196,8 @@ RESPUESTA (SOLO JSON, SIN TEXTO EXTRA):
             return {"intent": "consultar_caja", "confidence": 0.8, "extracted": {}}
         elif any(w in norm for w in ["top", "vendido", "ranking", "bestseller"]):
             return {"intent": "consultar_top_vendidas", "confidence": 0.8, "extracted": {}}
+        elif any(w in norm for w in ["campana", "campanas", "anuncio", "anuncios", "publicidad", "pauta", "ads", "meta", "facebook"]):
+            return {"intent": "consultar_ads", "confidence": 0.85, "extracted": {}}
         elif any(w in norm for w in ["venta", "vendim", "corte", "ingreso", "total"]):
             return {"intent": "consultar_ventas", "confidence": 0.7, "extracted": {}}
         elif any(w in norm for w in ["costo", "precio", "margen", "ganancia"]):
@@ -383,12 +385,19 @@ def enhanced_answer(assistant, text, chat_id="default"):
         m = re.search(r'(?:ticket|recibo|folio|#)\s*(\d+)', text, re.IGNORECASE)
         if m:
             return assistant.search_ticket(m.group(1))
-        return "🔍 Por favor indica el número del ticket."
+    elif intent == "consultar_ads":
+        try:
+            from send_ads_summary_telegram import get_ads_summary_msg
+            return get_ads_summary_msg()
+        except Exception as ex:
+            return f"❌ Error generando reporte de Meta Ads: {ex}"
     
     else:
         # Fallback: Gemini general
         if assistant.gemini_api_key:
-            return assistant.ask_gemini(text, chat_id=chat_id)
+            reply = assistant.ask_gemini(text, chat_id=chat_id)
+            if reply:
+                return reply
         return show_help()
 
 

@@ -863,6 +863,11 @@ class LoyverseTelegramNotifier:
             raw_text = (msg.get("text") or "").strip()
             text = raw_text.lower()
 
+            msg_date = msg.get("date")
+            if msg_date and (time.time() - msg_date) > 900:
+                print(f"⏭️ Mensaje ignoro por antigüedad ({int((time.time() - msg_date)/60)} min): '{raw_text}'")
+                continue
+
             if allowed_chats and sender_chat_id not in allowed_chats:
                 continue
 
@@ -871,13 +876,13 @@ class LoyverseTelegramNotifier:
 
             print(f"💬 Mensaje recibido: '{raw_text}' en chat {sender_chat_id}")
             
-            # Comando directo de Meta Ads / Campañas
-            if text in ["/ads", "/campanas", "/campañas", "/meta", "/facebook"] or any(k in text for k in ["como van las campañas", "como van las campanas", "reporte ads", "resumen ads", "metricas ads"]):
+            # Comando directo de Meta Ads / Campañas (coincidencia amplia)
+            if any(k in text for k in ["/ads", "/campanas", "/campañas", "/meta", "/facebook", "campana", "campaña", "campanas", "campañas", "anuncio", "anuncios", "publicidad", "pauta", "ads"]):
                 try:
                     from send_ads_summary_telegram import get_ads_summary_msg
                     ads_reply = get_ads_summary_msg()
-                    send_telegram(bot_token, sender_chat_id, ads_reply)
-                    continue
+                    if send_telegram(bot_token, sender_chat_id, ads_reply):
+                        continue
                 except Exception as ex:
                     print(f"Error generando reporte de Ads en Telegram: {ex}")
 
@@ -886,14 +891,16 @@ class LoyverseTelegramNotifier:
                 try:
                     from send_ads_pos_correlation_telegram import generate_correlation_report
                     corr_reply = generate_correlation_report()
-                    send_telegram(bot_token, sender_chat_id, corr_reply)
-                    continue
+                    if send_telegram(bot_token, sender_chat_id, corr_reply):
+                        continue
                 except Exception as ex:
                     print(f"Error generando reporte de Correlación en Telegram: {ex}")
 
             reply = self.assistant.answer(raw_text, chat_id=sender_chat_id)
-            if reply:
-                send_telegram(bot_token, sender_chat_id, reply)
+            if not reply:
+                from loyverse_assistant_enhanced import show_help
+                reply = show_help()
+            send_telegram(bot_token, sender_chat_id, reply)
 
     # =========================================================================
     # ALERTAS DE INVENTARIO

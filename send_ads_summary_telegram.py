@@ -16,22 +16,37 @@ def get_ads_summary_msg():
                     k, v = line.split('=', 1)
                     env_vars[k] = v
 
-    meta_token = env_vars.get('META_ACCESS_TOKEN', '')
-    account_id = env_vars.get('AD_ACCOUNT_ID', 'act_137220572')
+    meta_token = os.environ.get('META_ACCESS_TOKEN') or env_vars.get('META_ACCESS_TOKEN', '')
+    account_id = os.environ.get('AD_ACCOUNT_ID') or env_vars.get('AD_ACCOUNT_ID', 'act_137220572')
+
+    if not meta_token:
+        return (
+            f"🎯 <b>REPORTE DE META ADS — Vonne Boutique</b>\n\n"
+            f"⚠️ <i>No hay token de Meta Ads configurado actualmente.</i>\n"
+            f"💡 Configura <code>META_ACCESS_TOKEN</code> y <code>AD_ACCOUNT_ID</code> para habilitar reportes de campañas en vivo.\n\n"
+            f"📍 <i>Plaza La Fragua, Saltillo</i>"
+        )
 
     # 2. Query Meta Insights for today
     fields = 'campaign_id,campaign_name,spend,impressions,reach,clicks,cpc,cpm,ctr,actions,cost_per_action_type'
     url = f'https://graph.facebook.com/v20.0/{account_id}/insights?level=campaign&date_preset=today&fields={fields}&access_token={meta_token}&limit=100'
 
-    req = urllib.request.Request(url)
-    with urllib.request.urlopen(req, timeout=15) as resp:
-        camp_data = json.loads(resp.read().decode()).get('data', [])
+    try:
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            camp_data = json.loads(resp.read().decode()).get('data', [])
 
-    ad_fields = 'ad_id,ad_name,campaign_name,spend,impressions,reach,clicks,cpc,cpm,ctr,actions,cost_per_action_type'
-    url_ads = f'https://graph.facebook.com/v20.0/{account_id}/insights?level=ad&date_preset=today&fields={ad_fields}&access_token={meta_token}&limit=100'
-    req_ads = urllib.request.Request(url_ads)
-    with urllib.request.urlopen(req_ads, timeout=15) as resp:
-        ad_data = json.loads(resp.read().decode()).get('data', [])
+        ad_fields = 'ad_id,ad_name,campaign_name,spend,impressions,reach,clicks,cpc,cpm,ctr,actions,cost_per_action_type'
+        url_ads = f'https://graph.facebook.com/v20.0/{account_id}/insights?level=ad&date_preset=today&fields={ad_fields}&access_token={meta_token}&limit=100'
+        req_ads = urllib.request.Request(url_ads)
+        with urllib.request.urlopen(req_ads, timeout=15) as resp:
+            ad_data = json.loads(resp.read().decode()).get('data', [])
+    except Exception as e:
+        return (
+            f"🎯 <b>REPORTE DE META ADS — Vonne Boutique</b>\n\n"
+            f"ℹ️ <i>No se pudieron obtener métricas de campañas de Meta Ads en este momento ({e}).</i>\n\n"
+            f"📍 <i>Plaza La Fragua, Saltillo</i>"
+        )
 
     # 3. Compute Totals & Ranking
     tot_spend = 0.0
