@@ -35,12 +35,13 @@ def generate_correlation_report():
     meta_token = os.environ.get('META_ACCESS_TOKEN') or env_vars.get('META_ACCESS_TOKEN') or DEFAULT_META_TOKEN
     account_id = os.environ.get('AD_ACCOUNT_ID') or env_vars.get('AD_ACCOUNT_ID') or DEFAULT_AD_ACCOUNT
 
-    # 2. Fechas para corte de hoy (UTC-6)
-    today_dt = datetime.date.today()
-    today_str = today_dt.strftime("%Y-%m-%d")
+    # 2. Fechas para corte de hoy (Saltillo UTC-6)
+    tz_saltillo = datetime.timezone(datetime.timedelta(hours=-6))
+    now_saltillo = datetime.datetime.now(tz_saltillo)
+    today_str = now_saltillo.strftime("%Y-%m-%d")
     
     # 3. Recibos de Loyverse POS de hoy
-    # Para asegurar capturar desde las 00:00 UTC-6 (06:00 UTC)
+    # El día en Saltillo (00:00 UTC-6) inicia a las 06:00 UTC
     start_utc = f"{today_str}T06:00:00Z"
     url_loy = f"https://api.loyverse.com/v1.0/receipts?created_at_min={start_utc}&limit=250"
     req_loy = urllib.request.Request(url_loy, headers={"Authorization": f"Bearer {loyverse_token}"})
@@ -166,7 +167,7 @@ def generate_correlation_report():
         elif cpa > 0 and cpa < 7:
             star_ads.append(f"• 🟢 <b>{name}</b>: {msgs} msgs (CPA: ${cpa:.2f})")
 
-    now_fmt = datetime.datetime.now().strftime("%d/%m/%Y | %I:%M %p")
+    now_fmt = now_saltillo.strftime("%d/%m/%Y | %I:%M %p")
 
     # 8. Construcción del mensaje HTML
     msg = (
@@ -207,12 +208,29 @@ def generate_correlation_report():
     return msg
 
 def send_correlation_summary():
-    tg_cfg_path = r'C:\Users\PC3\Documents\Antigravity\Vonne boutique\sitio_web_github\telegram_config.json'
-    with open(tg_cfg_path, encoding='utf-8') as f:
-        tg_cfg = json.load(f)
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    tg_cfg_path = os.path.join(base_dir, 'telegram_config.json')
+    if not os.path.exists(tg_cfg_path):
+        tg_cfg_path = r'C:\Users\PC3\Documents\Antigravity\Vonne boutique\sitio_web_github\telegram_config.json'
 
-    bot_token = tg_cfg.get('bot_token')
-    chat_id = tg_cfg.get('chat_id')
+    bot_token = os.environ.get('BOT_TOKEN') or os.environ.get('TELEGRAM_BOT_TOKEN')
+    chat_id = os.environ.get('CHAT_ID') or os.environ.get('TELEGRAM_CHAT_ID')
+
+    if os.path.exists(tg_cfg_path):
+        try:
+            with open(tg_cfg_path, encoding='utf-8') as f:
+                tg_cfg = json.load(f)
+                if not bot_token:
+                    bot_token = tg_cfg.get('bot_token')
+                if not chat_id:
+                    chat_id = tg_cfg.get('chat_id')
+        except Exception:
+            pass
+
+    if not bot_token:
+        bot_token = "8836320390:AAEsK4-GVo_aD1eJ2Gzc_UFSvewm7H-FVKY"
+    if not chat_id:
+        chat_id = "-5559233999"
 
     msg = generate_correlation_report()
 

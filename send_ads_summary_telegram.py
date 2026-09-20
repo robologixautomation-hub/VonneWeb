@@ -100,7 +100,9 @@ def get_ads_summary_msg():
 
     processed_ads.sort(key=lambda x: x['msgs'], reverse=True)
 
-    now_str = datetime.datetime.now().strftime("%d/%m/%Y | %I:%M %p")
+    tz_saltillo = datetime.timezone(datetime.timedelta(hours=-6))
+    now_saltillo = datetime.datetime.now(tz_saltillo)
+    now_str = now_saltillo.strftime("%d/%m/%Y | %I:%M %p")
 
     msg = (
         f"📊 <b>REPORTE DE META ADS • VONNE BOUTIQUE</b>\n"
@@ -136,12 +138,29 @@ def get_ads_summary_msg():
     return msg
 
 def send_summary():
-    tg_cfg_path = r'C:\Users\PC3\Documents\Antigravity\Vonne boutique\sitio_web_github\telegram_config.json'
-    with open(tg_cfg_path, encoding='utf-8') as f:
-        tg_cfg = json.load(f)
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    tg_cfg_path = os.path.join(base_dir, 'telegram_config.json')
+    if not os.path.exists(tg_cfg_path):
+        tg_cfg_path = r'C:\Users\PC3\Documents\Antigravity\Vonne boutique\sitio_web_github\telegram_config.json'
 
-    bot_token = tg_cfg.get('bot_token')
-    chat_id = tg_cfg.get('chat_id')
+    bot_token = os.environ.get('BOT_TOKEN') or os.environ.get('TELEGRAM_BOT_TOKEN')
+    chat_id = os.environ.get('CHAT_ID') or os.environ.get('TELEGRAM_CHAT_ID')
+
+    if os.path.exists(tg_cfg_path):
+        try:
+            with open(tg_cfg_path, encoding='utf-8') as f:
+                tg_cfg = json.load(f)
+                if not bot_token:
+                    bot_token = tg_cfg.get('bot_token')
+                if not chat_id:
+                    chat_id = tg_cfg.get('chat_id')
+        except Exception:
+            pass
+
+    if not bot_token:
+        bot_token = "8836320390:AAEsK4-GVo_aD1eJ2Gzc_UFSvewm7H-FVKY"
+    if not chat_id:
+        chat_id = "-5559233999"
 
     msg = get_ads_summary_msg()
 
