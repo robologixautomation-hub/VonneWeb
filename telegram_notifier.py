@@ -227,9 +227,21 @@ def get_telegram_config():
     bot_token = os.environ.get("BOT_TOKEN") or os.environ.get("TELEGRAM_BOT_TOKEN")
     if bot_token:
         cfg["bot_token"] = bot_token.strip()
+    if not cfg.get("bot_token"):
+        cfg["bot_token"] = "8836320390:AAEsK4-GVo_aD1eJ2Gzc_UFSvewm7H-FVKY"
+
     chat_id = os.environ.get("CHAT_ID") or os.environ.get("TELEGRAM_CHAT_ID")
     if chat_id:
         cfg["chat_id"] = chat_id.strip()
+    if not cfg.get("chat_id"):
+        cfg["chat_id"] = "-5559233999"
+
+    allowed = os.environ.get("ALLOWED_CHAT_IDS")
+    if allowed:
+        cfg["allowed_chat_ids"] = [c.strip() for c in allowed.split(",") if c.strip()]
+    if not cfg.get("allowed_chat_ids"):
+        cfg["allowed_chat_ids"] = ["-5559233999", "549065780"]
+
     gemini_key = os.environ.get("GEMINI_API_KEY")
     if gemini_key:
         cfg["gemini_api_key"] = gemini_key.strip()
