@@ -1762,13 +1762,14 @@
        14. MODAL VISTA RÁPIDA DE PRENDA (QUICK VIEW)
        ========================================================================= -->
   <div id="quickview-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-    <div id="quickview-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div id="quickview-backdrop" onclick="closeQuickView()" class="fixed inset-0 bg-black/60 backdrop-blur-sm cursor-pointer"></div>
 
     <div class="relative bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto z-10 shadow-2xl animate-fade-in border border-brand-200">
       <button 
         type="button" 
         id="close-quickview-btn"
-        class="absolute top-4 right-4 z-20 w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center transition"
+        onclick="closeQuickView()"
+        class="absolute top-4 right-4 z-20 w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center transition cursor-pointer"
         aria-label="Cerrar vista rápida"
       >
         <i class="fas fa-times"></i>

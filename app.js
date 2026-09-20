@@ -600,43 +600,72 @@ function setupQuickViewModal() {
 }
 
 function openQuickView(productId) {
-  const product = PRODUCTS.find(p => p.id === productId);
+  let product = PRODUCTS.find(p => String(p.id) === String(productId) || String(p.code) === String(productId) || String(p.codigo) === String(productId));
+  if (!product && typeof window !== "undefined" && window.VONNE_CATALOGO_DATA) {
+    product = window.VONNE_CATALOGO_DATA.find(p => String(p.codigo) === String(productId) || String(p.id) === String(productId) || p.nombre === productId);
+  }
   if (!product) return;
+
+  // Normalizar propiedades
+  const sizesArr = Array.isArray(product.sizes) && product.sizes.length ? product.sizes : (Array.isArray(product.tallas) && product.tallas.length ? product.tallas : ["UNITALLA"]);
+  product.sizes = sizesArr;
+  product.name = product.name || product.nombre || "Prenda";
+  product.code = product.code || product.codigo || "VB-0000";
+  product.price = product.price || product.precio || 0;
+  product.originalPrice = product.originalPrice || product.precio_original || null;
+  product.image = product.image || product.foto_url || "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&q=80";
+  product.badge = product.badge || product.etiqueta || "Colección Gala";
+  product.description = product.description || product.descripcion || "Prenda disponible en Vonne Boutique Plaza La Fragua, Saltillo.";
 
   selectedProductForModal = product;
   const modal = document.getElementById("quickview-modal");
   if (!modal) return;
 
   const imgEl = document.getElementById("qv-image");
-  imgEl.src = product.image;
-  imgEl.alt = product.name;
-  imgEl.onerror = () => { imgEl.src = "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=800&q=80"; };
+  if (imgEl) {
+    imgEl.src = product.image;
+    imgEl.alt = product.name;
+    imgEl.onerror = () => { imgEl.src = "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=800&q=80"; };
+  }
 
-  document.getElementById("qv-badge").textContent = product.badge;
-  document.getElementById("qv-code").textContent = `Código: ${product.code}`;
-  document.getElementById("qv-name").textContent = product.name;
-  document.getElementById("qv-description").textContent = product.description;
-  document.getElementById("qv-price").textContent = `$${product.price} MXN`;
+  const badgeEl = document.getElementById("qv-badge");
+  if (badgeEl) badgeEl.textContent = product.badge;
+
+  const codeEl = document.getElementById("qv-code");
+  if (codeEl) codeEl.textContent = `Código: ${product.code}`;
+
+  const nameEl = document.getElementById("qv-name");
+  if (nameEl) nameEl.textContent = product.name;
+
+  const descEl = document.getElementById("qv-description");
+  if (descEl) descEl.textContent = product.description;
+
+  const priceEl = document.getElementById("qv-price");
+  if (priceEl) priceEl.textContent = `$${product.price} MXN`;
 
   const origPriceEl = document.getElementById("qv-original-price");
-  if (product.originalPrice) {
-    origPriceEl.textContent = `$${product.originalPrice} MXN`;
-    origPriceEl.classList.remove("hidden");
-  } else {
-    origPriceEl.classList.add("hidden");
+  if (origPriceEl) {
+    if (product.originalPrice) {
+      origPriceEl.textContent = `$${product.originalPrice} MXN`;
+      origPriceEl.classList.remove("hidden");
+    } else {
+      origPriceEl.classList.add("hidden");
+    }
   }
 
   const sizesContainer = document.getElementById("qv-sizes-container");
-  sizesContainer.innerHTML = product.sizes.map((size, index) => `
-    <button 
-      type="button"
-      onclick="selectQuickViewSize('${size}')" 
-      class="qv-size-btn px-4 py-2 border rounded-xl text-sm font-medium transition ${index === 0 ? 'bg-stone-900 text-white border-stone-900 active' : 'bg-stone-50 border-stone-200 text-stone-700 hover:border-stone-400'}"
-      data-size="${size}"
-    >
-      ${size}
-    </button>
-  `).join("");
+  if (sizesContainer) {
+    sizesContainer.innerHTML = product.sizes.map((size, index) => `
+      <button 
+        type="button"
+        onclick="selectQuickViewSize('${size}')" 
+        class="qv-size-btn px-4 py-2 border rounded-xl text-sm font-medium transition cursor-pointer ${index === 0 ? 'bg-stone-900 text-white border-stone-900 active' : 'bg-stone-50 border-stone-200 text-stone-700 hover:border-stone-400'}"
+        data-size="${size}"
+      >
+        ${size}
+      </button>
+    `).join("");
+  }
 
   modal.classList.remove("hidden");
   document.body.classList.add("overflow-hidden");
@@ -665,21 +694,26 @@ function addCurrentModalToBag() {
   if (!selectedProductForModal) return;
 
   const activeSizeBtn = document.querySelector(".qv-size-btn.active");
-  const chosenSize = activeSizeBtn ? activeSizeBtn.dataset.size : selectedProductForModal.sizes[0];
+  const sizesArr = selectedProductForModal.sizes || selectedProductForModal.tallas || ["UNITALLA"];
+  const chosenSize = activeSizeBtn ? activeSizeBtn.dataset.size : (sizesArr[0] || "UNITALLA");
 
   addItemToBag(selectedProductForModal, chosenSize);
   closeQuickView();
   openBagDrawer();
-  showToast(`¡${selectedProductForModal.name} agregada a tu bolsa de apartado!`);
+  showToast(`¡${selectedProductForModal.name || selectedProductForModal.nombre} agregada a tu bolsa de apartado!`);
 }
 
 function askCurrentModalWhatsApp() {
   if (!selectedProductForModal) return;
 
   const activeSizeBtn = document.querySelector(".qv-size-btn.active");
-  const chosenSize = activeSizeBtn ? activeSizeBtn.dataset.size : selectedProductForModal.sizes[0];
+  const sizesArr = selectedProductForModal.sizes || selectedProductForModal.tallas || ["UNITALLA"];
+  const chosenSize = activeSizeBtn ? activeSizeBtn.dataset.size : (sizesArr[0] || "UNITALLA");
+  const name = selectedProductForModal.name || selectedProductForModal.nombre;
+  const code = selectedProductForModal.code || selectedProductForModal.codigo;
+  const price = selectedProductForModal.price || selectedProductForModal.precio;
 
-  const text = `¡Hola Vonne Boutique! 👋 Me interesa la prenda *${selectedProductForModal.name}* (Código: ${selectedProductForModal.code}) en Talla *${chosenSize}* ($${selectedProductForModal.price} MXN). ¿La tienen en perchero hoy para pasar a probármela a su tienda de Plaza La Fragua?`;
+  const text = `¡Hola Vonne Boutique! 👋 Me interesa la prenda *${name}* (Código: ${code}) en Talla *${chosenSize}* ($${price} MXN). ¿La tienen en perchero hoy para pasar a probármela a su tienda de Plaza La Fragua?`;
   window.open(`https://wa.me/${BOUTIQUE_CONFIG.phone}?text=${encodeURIComponent(text)}`, '_blank');
 }
 
